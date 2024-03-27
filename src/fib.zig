@@ -1,6 +1,32 @@
 const std = @import("std");
 const py = @import("pydust");
 
+const logic = @import("logic.zig");
+
+pub fn process_lock(args: struct { buf: py.PyObject }) !i64 {
+    const view = try args.buf.getBuffer(py.PyBuffer.Flags.ND);
+    defer view.release();
+
+    std.debug.print("VIEW : {any}\n\n", .{view});
+
+    for (view.asSlice([*:0]const u8)) |value| {
+        std.debug.print("line: {s}", .{value});
+    }
+
+    // var bufferSum: i64 = 0;
+    // for (view.asSlice(i64)) |value| bufferSum += value;
+    // return bufferSum;
+    return 10;
+}
+
+pub fn variadic(args: struct { hello: py.PyString, args: py.Args, kwargs: py.Kwargs }) !py.PyString {
+    logic.process();
+    return py.PyString.createFmt(
+        "Hellos {s} with {} varargs and {} kwargs",
+        .{ try args.hello.asSlice(), args.args.len, args.kwargs.count() },
+    );
+}
+
 // A simple fibonacci implementation.
 pub fn nth_fibonacci_iterative(args: struct { n: u64 }) u64 {
     if (args.n < 2) return args.n;

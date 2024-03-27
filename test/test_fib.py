@@ -1,4 +1,4 @@
-from fibonacci import _lib
+from zigffi import _lib
 
 
 def test_fibonacci():

@@ -8,11 +8,11 @@ version = "0.1.0"
 description = ""
 authors = ["Fulcrum Inc. <hello@fulcrum.so>"]
 readme = "README.md"
-packages = [{ include = "fibonacci" }]
+packages = [{ include = "zigffi" }]
 include = [
     { path = "src/", format = "sdist" },
-    { path = "fibonacci/*.so", format = "wheel" },
-    "fibonacci/*.pyi"
+    { path = "zigffi/*.so", format = "wheel" },
+    "zigffi/*.pyi"
 ]
 
 [tool.poetry.build]
@@ -20,6 +20,11 @@ script = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+jupyterlab = "^4.1.5"
+boto3 = "^1.34.71"
+psycopg2 = "^2.9.9"
+pendulum = "^3.0.0"
+numpy = "^1.26.4"
 
 [tool.poetry.group.dev.dependencies]
 ziggy-pydust = "0.23.2"
@@ -35,5 +40,5 @@ line-length = 120
 select = ["F", "E", "W", "UP", "I001", "I002"]
 
 [[tool.pydust.ext_module]]
-name = "fibonacci._lib"
+name = "zigffi._lib"
 root = "src/fib.zig"
