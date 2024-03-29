@@ -56,7 +56,7 @@ def test_variadic():
             'schedule_cost': 'monthly'
         },
     }
-    print(_lib.variadic("Son", partner_dict))
+    print(_lib.variadic("Son", partner_dict, 'CJT-1585'))
 
 
 def test_process_lock_costing_selector():
@@ -91,12 +91,29 @@ def test_process_lock_costing_selector():
     print()
     print(f"itemsize: {n.itemsize}, ndim: {n.ndim}, shape: {n.shape}, strides: {n.strides}, dtype: {n.dtype}")
     print()
+
+    partner_dict = {
+        'CJT-1585': {
+            'display_name': 'CJT-1585',
+            'partner_id': 71934,
+            'partner_user_id': None,
+            'schedule_cost': 'monthly'
+        },
+        'CON10850': {
+            'display_name': 'CON10850',
+            'partner_id': 71948,
+            'partner_user_id': None,
+            'schedule_cost': 'monthly'
+        },
+    }
+
     a = _lib.process_lock_costing_selector(
         n,
         n.itemsize,
         n.shape[0],
         n.shape[1],
         n.strides[0],
-        n.strides[1]
+        n.strides[1],
+        partner_dict,
     )
     assert a == 10
