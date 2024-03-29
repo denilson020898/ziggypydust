@@ -149,7 +149,9 @@ pub fn loopCosting(
             .etl_date = etl_date,
         };
 
-        // var data = try getPartnerData(&partner_dict, mitra_code_genesis);
+        var data = try getPartnerData(partner_dict, mitra_code_genesis);
+        // var data = try getPartnerData(partner_dict, "CONS104");
+
         // const pystr = "CONS104";
         // std.debug.print("zig str\t\t\t {s} | {} | {any}\n", .{
         //     pystr,
@@ -163,6 +165,7 @@ pub fn loopCosting(
         // });
 
         std.debug.print("{any}\n", .{per_row_lock});
+        std.debug.print("mitra_code_genesis {s}: {any}\n", .{ mitra_code_genesis, data });
         // const first_char_slice = per_row_lock.costing_number;
         // for (first_char_slice) |value| {
         //     std.debug.print("\t 0x{x} is {u} {d}\n", .{ value, value, value });
@@ -205,7 +208,10 @@ pub fn getPartnerData(partner_dict: *const py.PyDict, mitra_code: []const u8) !P
     const py_mitra_code = try py.PyString.create(mitra_code);
 
     const contains = try partner_dict.contains(py_mitra_code);
-    if (!contains) return PartnerDataError.MitraNotFound;
+    if (!contains) {
+        std.debug.print("ERROR: '{s}' is not found in partner dict.", .{mitra_code});
+        return PartnerDataError.MitraNotFound;
+    }
 
     const current_mitra = try partner_dict.getItem(py.PyDict, py_mitra_code);
 
