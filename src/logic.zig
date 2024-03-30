@@ -45,7 +45,6 @@ fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) ![]u8 {
 
 pub fn loopCosting(
     buf: *const py.PyObject,
-    nbytes: usize,
     itemsize: usize,
     shape_x: usize,
     shape_y: usize,
@@ -53,7 +52,6 @@ pub fn loopCosting(
     stride_y: usize,
     partner_dict: *const py.PyDict,
 ) !u64 {
-    std.debug.assert(nbytes > 0);
     std.debug.assert(itemsize > 0);
     std.debug.assert(shape_x > 0);
     std.debug.assert(shape_y > 0);
@@ -62,7 +60,7 @@ pub fn loopCosting(
 
     std.debug.print("\t\tlen partner_dict {}\n", .{partner_dict.length()});
 
-    // var result: u64 = 0;
+    var result: u64 = 0;
 
     const view = try buf.getBuffer(py.PyBuffer.Flags.ND);
     defer view.release();
@@ -137,7 +135,6 @@ pub fn loopCosting(
             }
 
             // std.debug.print("row{}, col{}: {s}\n", .{ x, y, values });
-            // result += 1;
         }
 
         const per_row_lock = LockCostingFields{
@@ -150,6 +147,9 @@ pub fn loopCosting(
         };
 
         var data = try getPartnerData(partner_dict, mitra_code_genesis);
+
+        _ = per_row_lock;
+        _ = data;
         // var data = try getPartnerData(partner_dict, "CONS104");
 
         // const pystr = "CONS104";
@@ -164,15 +164,17 @@ pub fn loopCosting(
         //     &per_row_lock.mitra_code_genesis,
         // });
 
-        std.debug.print("{any}\n", .{per_row_lock});
-        std.debug.print("mitra_code_genesis {s}: {any}\n", .{ mitra_code_genesis, data });
+        // std.debug.print("{any}\n", .{per_row_lock});
+        // std.debug.print("mitra_code_genesis {s}: {any}\n", .{ mitra_code_genesis, data });
         // const first_char_slice = per_row_lock.costing_number;
         // for (first_char_slice) |value| {
         //     std.debug.print("\t 0x{x} is {u} {d}\n", .{ value, value, value });
         // }
+        //
+        result += 1;
     }
 
-    return 10;
+    return result;
 }
 
 pub const PartnerData = struct {
@@ -204,8 +206,12 @@ pub fn getPartnerData(partner_dict: *const py.PyDict, mitra_code: []const u8) !P
     const py_sc = try py.PyString.create("schedule_cost");
     const py_pi = try py.PyString.create("partner_id");
     const py_pui = try py.PyString.create("partner_user_id");
-
     const py_mitra_code = try py.PyString.create(mitra_code);
+
+    defer py_sc.decref();
+    defer py_pi.decref();
+    defer py_pui.decref();
+    defer py_mitra_code.decref();
 
     const contains = try partner_dict.contains(py_mitra_code);
     if (!contains) {
@@ -247,23 +253,55 @@ pub fn getPartnerData(partner_dict: *const py.PyDict, mitra_code: []const u8) !P
     };
 }
 
-const zigstr = @import("zigstr");
+// const zigstr = @import("zigstr");
 
-test "unicodes " {
-    // var code_point_bytes: [4]u8 = undefined;
-    // const bytes_encoded = try std.unicode.utf8Encode('a', &code_point_bytes);
-    //
-    // std.debug.print("\n\n\t\t{any}\n", .{bytes_encoded});
-    //
-    // const decoded = try std.unicode.utf8Decode("A");
-    // std.debug.print("\n\n\t\t{any}\n", .{decoded});
+// const PartnerDataInput = struct {
+//     mitra: PartnerDataMitra,
+// };
 
-    const name = "José";
-    var code_point_iterator = (try std.unicode.Utf8View.init(name)).iterator();
+// const PartnerDataMitra = struct {
+//     display_name: []const u8,
+//     partner_id: usize,
+//     partner_user_id: ?usize,
+//     display_name: []const u8,
+// };
 
-    while (code_point_iterator.next()) |code_point| {
-        std.debug.print("0x{x} is {u} \n", .{ code_point, code_point });
-    }
+// test "test create dict inline" {
+//     py.initialize();
+//     defer py.finalize();
 
-    try std.testing.expect(true);
-}
+//     // partner_dict = {
+//     //     'CJT-1585': {
+//     //         'display_name': 'CJT-1585',
+//     //         'partner_id': 71934,
+//     //         'partner_user_id': None,
+//     //         'schedule_cost': 'monthly'
+//     //     },
+//     //     'CON10850': {
+//     //         'display_name': 'CON10850',
+//     //         'partner_id': 71948,
+//     //         'partner_user_id': None,
+//     //         'schedule_cost': 'monthly'
+//     //     },
+//     // }
+
+//     const zig_data_mitra = .{
+//         .display_name = "AAA",
+//         .partner_id = 71934,
+//         // .partner_user_id = null,
+//         .schedule_cost = "monthly",
+//     };
+
+//     const zig_data_input = .{
+//         .mitra = zig_data_mitra,
+//     };
+
+//     const my_dict = try py.PyDict.create(zig_data_input);
+//     defer my_dict.decref();
+
+//     // var data = try getPartnerData(&my_dict, "AAA");
+//     std.debug.print("\n\n\t\t{}\n", .{my_dict});
+//     // std.debug.print("\n\n\t\t{}\n", .{data});
+
+//     try std.testing.expect(true);
+// }

@@ -1,5 +1,21 @@
-// Run "Debug" from the "Run and Debug" in any .zig file.
-// You will need "LLDB VSCode" extension.
+// // Run "Debug" from the "Run and Debug" in any .zig file.
+// // You will need "LLDB VSCode" extension.
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "type": "lldb",
+//             "request": "launch",
+//             "name": "Debug",
+//             "preLaunchTask": "compile debug",
+//             "initCommands": [
+//                 // "shell poetry run pydust debug ${file}"
+//                 "shell poetry run pydust debug ${file}"
+//             ],
+//             "program": "zig-out/bin/debug.bin",
+//         },
+//     ]
+// }
 {
     "version": "0.2.0",
     "configurations": [
@@ -7,10 +23,33 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
+            "preLaunchTask": "zig-test-bin",
+            "program": "${workspaceFolder}/zig-out/bin/test.bin",
+            "args": [],
+            "cwd": "${workspaceFolder}/",
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Example",
             "initCommands": [
                 "shell poetry run pydust debug ${file}"
             ],
             "program": "zig-out/bin/debug.bin",
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "LLDB Python",
+            "program": "${command:python.interpreterPath}",
+            "args": [
+                "-m",
+                "pytest",
+                "-s",
+                "-k",
+                "test_process_lock_costing_selector",
+            ],
+            "cwd": "${workspaceFolder}"
         },
     ]
 }

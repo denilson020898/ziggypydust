@@ -42,7 +42,6 @@ const logic = @import("logic.zig");
 
 pub fn process_lock_costing_selector(args: struct {
     buf: py.PyObject,
-    nbytes: usize,
     itemsize: usize,
     shape_x: usize,
     shape_y: usize,
@@ -52,7 +51,6 @@ pub fn process_lock_costing_selector(args: struct {
 }) !u64 {
     const result = try logic.loopCosting(
         &args.buf,
-        args.nbytes,
         args.itemsize,
         args.shape_x,
         args.shape_y,
@@ -66,6 +64,21 @@ pub fn process_lock_costing_selector(args: struct {
 // const zigstr = @import("zigstr");
 
 // pub fn variadic(args: struct { hello: py.PyString, args: py.Args, kwargs: py.Kwargs }) !py.PyString {
+
+const KeyVal = struct {
+    aa: usize,
+    ba: usize,
+};
+
+const KeyVal2 = struct {
+    .aa,
+    .ba,
+};
+
+const KeyVals = struct {
+    keyval: []KeyVal,
+};
+
 pub fn variadic(
     args: struct {
         hello: py.PyString,
@@ -73,16 +86,24 @@ pub fn variadic(
         mitra_code: []const u8,
     },
 ) !py.PyString {
-    // const hello = try args.hello.asSlice();
-    // std.debug.print("\n\thello {s}\n", .{hello});
+    const hello = try args.hello.asSlice();
+    std.debug.print("\n\thello {s}\n", .{hello});
 
-    std.debug.print("args.mitra_code {s}\n{any}\n", .{ args.mitra_code, args.mitra_code });
+    // std.debug.print("\tobj: {any}\n", .{args.input_dict.obj.getBuffer()});
     //
+    // const tuple = args.input_dict.as(.{});
+    // std.debug.print("\ttuple: {any}\n", .{tuple});
+
+    // const keyval = try args.input_dict.as(KeyVal);
+    // std.debug.print("\tkeyval: {any}\n", .{keyval});
+
     // var data = try logic.getPartnerData(&args.input_dict, args.mitra_code);
     // std.debug.print("{}\n", .{data});
 
     // return logic.PartnerDataError.MitraNotFound;
-    return py.PyString.create("RET");
+    const result = try py.PyString.create(args.mitra_code);
+    // defer result.decref();
+    return result;
 }
 
 // // A simple fibonacci implementation.
