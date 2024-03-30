@@ -1,44 +1,7 @@
 const std = @import("std");
 const py = @import("pydust");
 
-const logic = @import("logic.zig");
-
-// pub fn process_lock_int(args: struct {
-//     buf: py.PyObject,
-//     itemsize: usize,
-//     shape_x: usize,
-//     shape_y: usize,
-//     stride_x: usize,
-//     stride_y: usize,
-// }) !i64 {
-//     std.debug.assert(args.itemsize > 0);
-//     std.debug.assert(args.shape_x > 0);
-//     std.debug.assert(args.shape_y > 0);
-//     std.debug.assert(args.stride_x > 0);
-//     std.debug.assert(args.stride_y > 0);
-//
-//     const view = try args.buf.getBuffer(py.PyBuffer.Flags.ND);
-//     defer view.release();
-//
-//     std.debug.print("VIEW : {any}\n\n", .{view});
-//
-//     std.debug.print("shape : {}, {}\n\n", .{ args.shape_x, args.shape_y });
-//     const len = args.shape_x * args.shape_y;
-//     const arr_ptr = view.asSlice(i64)[0..len];
-//     std.debug.print("arr_ptr: {any}\n", .{arr_ptr});
-//
-//     for (0..args.shape_x) |x| {
-//         for (0..args.shape_y) |y| {
-//             const offset: usize = args.stride_x * x + args.stride_y * y;
-//             std.debug.print("\t{} {} {}\n", .{ x, y, offset });
-//         }
-//     }
-//
-//     // var bufferSum: i64 = 0;
-//     // for (view.asSlice(i64)) |value| bufferSum += value;
-//     // return bufferSum;
-//     return 10;
-// }
+const logic = @import("aggr_logic.zig");
 
 pub fn process_lock_costing_selector(args: struct {
     buf: py.PyObject,
@@ -63,22 +26,6 @@ pub fn process_lock_costing_selector(args: struct {
 
 // const zigstr = @import("zigstr");
 
-// pub fn variadic(args: struct { hello: py.PyString, args: py.Args, kwargs: py.Kwargs }) !py.PyString {
-
-const KeyVal = struct {
-    aa: usize,
-    ba: usize,
-};
-
-const KeyVal2 = struct {
-    .aa,
-    .ba,
-};
-
-const KeyVals = struct {
-    keyval: []KeyVal,
-};
-
 pub fn variadic(
     args: struct {
         hello: py.PyString,
@@ -88,21 +35,7 @@ pub fn variadic(
 ) !py.PyString {
     const hello = try args.hello.asSlice();
     std.debug.print("\n\thello {s}\n", .{hello});
-
-    // std.debug.print("\tobj: {any}\n", .{args.input_dict.obj.getBuffer()});
-    //
-    // const tuple = args.input_dict.as(.{});
-    // std.debug.print("\ttuple: {any}\n", .{tuple});
-
-    // const keyval = try args.input_dict.as(KeyVal);
-    // std.debug.print("\tkeyval: {any}\n", .{keyval});
-
-    // var data = try logic.getPartnerData(&args.input_dict, args.mitra_code);
-    // std.debug.print("{}\n", .{data});
-
-    // return logic.PartnerDataError.MitraNotFound;
     const result = try py.PyString.create(args.mitra_code);
-    // defer result.decref();
     return result;
 }
 

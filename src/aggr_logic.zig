@@ -1,10 +1,6 @@
 const std = @import("std");
 const py = @import("pydust");
 
-pub fn process() void {
-    std.debug.print("BROOO\n", .{});
-}
-
 const LockCostingFields = struct {
     costing_number: []const u8,
     latest_costing_number_ts: []const u8,
@@ -28,10 +24,6 @@ const LockCostingFields = struct {
         _ = try writer.print("\tstt_pod_date: {s},\n", .{lcf.stt_pod_date});
         _ = try writer.print("\tetl_date: {s},\n", .{lcf.etl_date});
 
-        // try writer.writeAll("\timages: [\n");
-        // for (lock_costing_fields.images) |image| _ = try writer.print("\t\t{s},\n", .{image});
-        // try writer.writeAll("\t],\n");
-        //
         try writer.writeAll("}\n");
     }
 };
