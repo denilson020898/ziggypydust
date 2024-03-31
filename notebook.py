@@ -1,43 +1,63 @@
-#%%
+# %%
 import numpy as np
+import json
+from zigffi import _lib
+import boto3
+import time
+import gc
 
-#%%
-result = [
-    ('11LP1706667699702;IDL-959;9',
-    '20240327T062344;11LP1706667699702;IDL-959;9',
-    'IDL-959',
-    '2024-01-31 02-21-39',
-    '2024-02-07 09-41-30',
-    '2024-03-18 07-53-05'),
-    ('11LP1706667699702;MJP-1079;11',
-    '20240327T062344;11LP1706667699702;MJP-1079;11',
-    'MJP-1079',
-    '2024-01-31 02-21-39',
-    '2024-02-07 09-41-30',
-    '2024-03-18 07-53-05'),
-    ('11LP1706667752515;CONS41;3',
-    '20240327T062344;11LP1706667752515;CONS41;3',
-    'CONS41',
-    '2024-01-31 02-22-32',
-    '2024-02-02 05-34-36',
-    '2024-03-18 07-53-05'),
-    ('11LP1706667752515;CONS41;7',
-    '20240327T062344;11LP1706667752515;CONS41;7',
-    'CONS41',
-    '2024-01-31 02-22-32',
-    '2024-02-02 05-34-36',
-    '2024-03-18 07-53-05 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'),
-]
-#%%
+# %%
+with open("/home/son/results.json", "r") as f:
+    result = json.loads(f.read())
+len(result)
+
+# %%
 
 n = np.array(result)
 print()
 print(f"itemsize: {n.itemsize}, ndim: {n.ndim}, shape: {n.shape}, strides: {n.strides}, dtype: {n.dtype}")
 print()
 
-# %%
-dt = n.dtype
-dt.byteorder, dt.itemsize, dt.name, 
+del result
+gc.collect()
 
 # %%
+s3_target = boto3.resource(
+    "s3",
+    aws_access_key_id="minioadmin",
+    aws_secret_access_key="minioadmin",
+    endpoint_url="http://localhost:9000",
+)
+COSTING_BUCKET_NAME = "costing-bucket"
+stt_cost_key = "AGGREGATE_COSTING/20240330T042222/res_partner_list.json"
+# stt_cost_key  = "AGGREGATE_COSTING/20240329T073416/res_partner_list.json"
+# stt_cost_key = "sampel.csv"
+
+
+obj = s3_target.Object(COSTING_BUCKET_NAME, stt_cost_key)
+stt_csv_data = obj.get()["Body"].read().decode("utf-8")
+# %%
+res_partner_list = json.loads(stt_csv_data)
+partner_dict = {
+    rp[0]: {
+        "partner_id": rp[1],
+        "schedule_cost": rp[2],
+        "display_name": rp[3],
+        "partner_user_id": rp[4],
+    }
+    for rp in res_partner_list
+}
+# print(res_partner_list)
+print(len(partner_dict))
+
+# #%%
+start_time = time.perf_counter()
+
+a = _lib.process_lock_costing_selector(n, n.itemsize, n.shape[0], n.shape[1], n.strides[0], n.strides[1], partner_dict)
+print(a)
+
+end_time = time.perf_counter()
+elapsed_time = end_time - start_time
+print("Elapsed time call zig function: ", elapsed_time)
+
 # %%

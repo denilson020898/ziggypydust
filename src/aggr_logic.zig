@@ -28,7 +28,8 @@ const LockCostingFields = struct {
     }
 };
 
-fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) ![]u8 {
+/// caller must free the returned bytes manually
+fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Allocator.Error![]u8 {
     const result = try allocator.alloc(u8, a.len + b.len);
     std.mem.copy(u8, result, a);
     std.mem.copy(u8, result[a.len..], b);
@@ -142,27 +143,10 @@ pub fn loopCosting(
 
         _ = per_row_lock;
         _ = data;
-        // var data = try getPartnerData(partner_dict, "CONS104");
 
-        // const pystr = "CONS104";
-        // std.debug.print("zig str\t\t\t {s} | {} | {any}\n", .{
-        //     pystr,
-        //     @TypeOf(pystr),
-        //     pystr,
-        // });
-        // std.debug.print("py numpy\t\t {s} | {} | {any}\n", .{
-        //     per_row_lock.mitra_code_genesis,
-        //     @TypeOf(&per_row_lock.mitra_code_genesis),
-        //     &per_row_lock.mitra_code_genesis,
-        // });
+        // const lock_query = f"UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
+        // const lock_query = "UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
 
-        // std.debug.print("{any}\n", .{per_row_lock});
-        // std.debug.print("mitra_code_genesis {s}: {any}\n", .{ mitra_code_genesis, data });
-        // const first_char_slice = per_row_lock.costing_number;
-        // for (first_char_slice) |value| {
-        //     std.debug.print("\t 0x{x} is {u} {d}\n", .{ value, value, value });
-        // }
-        //
         result += 1;
     }
 
