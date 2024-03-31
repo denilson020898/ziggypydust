@@ -1,6 +1,8 @@
 const std = @import("std");
 const py = @import("pydust");
 
+const time = @import("time.zig");
+
 const LockCostingFields = struct {
     costing_number: []const u8,
     latest_costing_number_ts: []const u8,
@@ -241,6 +243,13 @@ pub fn getPartnerData(partner_dict: *const py.PyDict, mitra_code: []const u8) !P
         .odoo_partner_id = partner_id,
         .odoo_partner_user_id = partner_user_id,
     };
+}
+
+test "time lib" {
+    const init_new = time.DateTime.init(2024, 3, 3, 3, 3, 3);
+
+    std.debug.print("\n\n\tnow wib is {iso}\n", .{init_new});
+    std.debug.print("\n\t\t\t new value {} {} {}", .{ init_new.years, init_new.months, init_new.days });
 }
 
 // const zigstr = @import("zigstr");

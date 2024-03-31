@@ -7,11 +7,16 @@
     .version = "0.0.1",
 
     // the actual packages you need as dependencies of your project
-    .dependencies = .{
-        // the name of the package
-        .zigstr = .{
-            .url = "https://codeberg.org/dude_the_builder/zigstr/archive/v0.11.2.tar.gz",
-            .hash = "12208129a4af2c2954a9d2049072fe98e35763c7e8a33aa34e3204caa5fa792f8b5f",
-        },
-    },
+    // .dependencies = .{
+    // the name of the package
+    // .zigstr = .{
+    //     .url = "https://codeberg.org/dude_the_builder/zigstr/archive/v0.11.2.tar.gz",
+    //     .hash = "12208129a4af2c2954a9d2049072fe98e35763c7e8a33aa34e3204caa5fa792f8b5f",
+    // },
+    // .zeit = .{
+    //     // .url = "https://codeberg.org/dude_the_builder/zigstr/archive/v0.11.2.tar.gz",
+    //     .url = "https://github.com/denilson020898/zeit/archive/main.tar.gz",
+    //     .hash = "12202cbe4f92f0ab656e5759094ccbc9b6223901dbaa6909dbab8498f4cb9fe92516",
+    // },
+    // },
 }
