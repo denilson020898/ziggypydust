@@ -7,9 +7,9 @@ import time
 import gc
 
 # %%
-with open("/home/son/results.json", "r") as f:
+with open("/home/son/rnd/results.json") as f:
     result = json.loads(f.read())
-len(result)
+print("lock costing selector result", len(result))
 
 # %%
 
@@ -22,22 +22,21 @@ del result
 gc.collect()
 
 # %%
-s3_target = boto3.resource(
-    "s3",
-    aws_access_key_id="minioadmin",
-    aws_secret_access_key="minioadmin",
-    endpoint_url="http://localhost:9000",
-)
-COSTING_BUCKET_NAME = "costing-bucket"
-stt_cost_key = "AGGREGATE_COSTING/20240330T042222/res_partner_list.json"
+# s3_target = boto3.resource(
+#     "s3",
+#     aws_access_key_id="minioadmin",
+#     aws_secret_access_key="minioadmin",
+#     endpoint_url="http://localhost:9000",
+# )
+# COSTING_BUCKET_NAME = "costing-bucket"
+# stt_cost_key = "AGGREGATE_COSTING/20240330T042222/res_partner_list.json"
 # stt_cost_key  = "AGGREGATE_COSTING/20240329T073416/res_partner_list.json"
 # stt_cost_key = "sampel.csv"
+# obj = s3_target.Object(COSTING_BUCKET_NAME, stt_cost_key)
+# stt_csv_data = obj.get()["Body"].read().decode("utf-8")
 
-
-obj = s3_target.Object(COSTING_BUCKET_NAME, stt_cost_key)
-stt_csv_data = obj.get()["Body"].read().decode("utf-8")
-# %%
-res_partner_list = json.loads(stt_csv_data)
+with open("/home/son/rnd/res_partner_list.json") as f:
+    res_partner_list = json.loads(f.read())
 partner_dict = {
     rp[0]: {
         "partner_id": rp[1],
@@ -50,7 +49,7 @@ partner_dict = {
 # print(res_partner_list)
 print(len(partner_dict))
 
-# #%%
+# %%
 start_time = time.perf_counter()
 
 a = _lib.process_lock_costing_selector(n, n.itemsize, n.shape[0], n.shape[1], n.strides[0], n.strides[1], partner_dict)

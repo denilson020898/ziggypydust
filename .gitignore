@@ -1,4 +1,6 @@
 zls.build.json
+*.svg
+*.data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

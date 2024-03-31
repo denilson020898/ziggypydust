@@ -31,9 +31,25 @@ const LockCostingFields = struct {
 /// caller must free the returned bytes manually
 fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Allocator.Error![]u8 {
     const result = try allocator.alloc(u8, a.len + b.len);
-    std.mem.copy(u8, result, a);
-    std.mem.copy(u8, result[a.len..], b);
+    // std.mem.copy(u8, result, a);
+    // std.mem.copy(u8, result[a.len..], b);
+    @memcpy(result, a);
+    @memcpy(result[a.len..], b);
     return result;
+}
+
+fn selfConcat(a: []const u8, b: []const u8, out: []u8) void {
+    std.debug.assert(out.len >= a.len + b.len);
+    std.mem.copy(u8, out, a);
+    std.mem.copy(u8, out[a.len..], b);
+}
+
+fn stackBufferSize() comptime_int {
+    return 128;
+}
+
+fn castSentinelToSlice(input_slice: []const u8) []const u8 {
+    return std.mem.span(@as([*:0]const u8, @ptrCast(input_slice)));
 }
 
 pub fn loopCosting(
@@ -63,21 +79,28 @@ pub fn loopCosting(
     const len_x = shape_x * shape_y * itemsize;
     const arr_ptr = view.asSlice(u8)[0..len_x];
 
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
+    // var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    // defer arena.deinit();
+    // const allocator = arena.allocator();
 
     for (0..shape_x) |x| {
         const lower_offset_x = x * stride_x;
         const upper_offset_x = lower_offset_x + stride_x;
         const row = arr_ptr[lower_offset_x..upper_offset_x];
 
-        var costing_number: []const u8 = undefined;
-        var latest_costing_number_ts: []const u8 = undefined;
-        var mitra_code_genesis: []const u8 = undefined;
-        var stt_booked_date: []const u8 = undefined;
-        var stt_pod_date: []const u8 = undefined;
-        var etl_date: []const u8 = undefined;
+        // var costing_number: []const u8 = undefined;
+        // var latest_costing_number_ts: []const u8 = undefined;
+        // var mitra_code_genesis: []const u8 = undefined;
+        // var stt_booked_date: []const u8 = undefined;
+        // var stt_pod_date: []const u8 = undefined;
+        // var etl_date: []const u8 = undefined;
+
+        var costing_number: [stackBufferSize()]u8 = undefined;
+        var latest_costing_number_ts: [stackBufferSize()]u8 = undefined;
+        var mitra_code_genesis: [stackBufferSize()]u8 = undefined;
+        var stt_booked_date: [stackBufferSize()]u8 = undefined;
+        var stt_pod_date: [stackBufferSize()]u8 = undefined;
+        var etl_date: [stackBufferSize()]u8 = undefined;
 
         for (0..shape_y) |y| {
             const lower_offset_y = y * stride_y;
@@ -85,64 +108,55 @@ pub fn loopCosting(
 
             const per_row = row[lower_offset_y..upper_offset_y];
 
-            // var row_elem: []u8 = "";
+            var slice_value: [256]u8 = undefined;
+            var slice_end_idx: usize = 0;
 
-            // var buffer: [2]u8 = undefined;
-            // var fba = std.heap.FixedBufferAllocator.init(&buffer);
-            // const allocator = fba.allocator();
-
-            var values: []u8 = "";
+            // var values: []u8 = "";
             var idx: usize = 0;
-            var end_idx: usize = 1;
             while (idx < per_row.len) : (idx += 4) {
-                end_idx += 1;
-                // value = value[0..last_idx] ++ per_row[idx .. idx + 1];
-
                 const new = per_row[idx .. idx + 1];
                 if (!std.mem.eql(u8, new, "\x00")) {
-                    values = try concat(allocator, values, new);
+                    // values = try concat(allocator, values, new);
+
+                    const current_slice = slice_value[0..slice_end_idx];
+                    slice_end_idx += 1;
+                    selfConcat(current_slice, new, &slice_value);
                 }
             }
 
-            // const value = per_row[0..1] ++ per_row[4..5];
-            // std.debug.print("\t {s}\n", .{values});
-
-            // for (values) |value| {
-            //     std.debug.print("\t 0x{x} is {u} {d}\n", .{ value, value, value });
-            // }
-
-            // for (row_elem) |value| {
-            //     std.debug.print("\t 0x{x} is {u} {d}\n", .{ value, value, value });
-            // }
-
-            // break;
+            const current_slice = slice_value[0..slice_end_idx];
+            selfConcat(current_slice, "\x00", &slice_value);
+            const sentinel: [*:0]const u8 = @ptrCast(&slice_value);
+            // const values: []const u8 = std.mem.span(sentinel);
 
             switch (y) {
-                0 => costing_number = values,
-                1 => latest_costing_number_ts = values,
-                2 => mitra_code_genesis = values,
-                3 => stt_booked_date = values,
-                4 => stt_pod_date = values,
-                5 => etl_date = values,
+                0 => @memcpy(&costing_number, sentinel),
+                1 => @memcpy(&latest_costing_number_ts, sentinel),
+                2 => @memcpy(&mitra_code_genesis, sentinel),
+                3 => @memcpy(&stt_booked_date, sentinel),
+                4 => @memcpy(&stt_pod_date, sentinel),
+                5 => @memcpy(&etl_date, sentinel),
                 else => unreachable,
             }
-
-            // std.debug.print("row{}, col{}: {s}\n", .{ x, y, values });
         }
 
+        // const costing_number_sent: []const u8 = std.mem.span(sentinel[]);
+
         const per_row_lock = LockCostingFields{
-            .costing_number = costing_number,
-            .latest_costing_number_ts = latest_costing_number_ts,
-            .mitra_code_genesis = mitra_code_genesis,
-            .stt_booked_date = stt_booked_date,
-            .stt_pod_date = stt_pod_date,
-            .etl_date = etl_date,
+            .costing_number = castSentinelToSlice(&costing_number),
+            .latest_costing_number_ts = castSentinelToSlice(&latest_costing_number_ts),
+            .mitra_code_genesis = castSentinelToSlice(&mitra_code_genesis),
+            .stt_booked_date = castSentinelToSlice(&stt_booked_date),
+            .stt_pod_date = castSentinelToSlice(&stt_pod_date),
+            .etl_date = castSentinelToSlice(&etl_date),
         };
 
-        var data = try getPartnerData(partner_dict, mitra_code_genesis);
+        var data = try getPartnerData(partner_dict, per_row_lock.mitra_code_genesis);
 
-        _ = per_row_lock;
+        // _ = per_row_lock;
         _ = data;
+
+        // std.debug.print("{}{}\n", .{ per_row_lock, data });
 
         // const lock_query = f"UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
         // const lock_query = "UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";

@@ -47,7 +47,7 @@
                 "pytest",
                 "-s",
                 "-k",
-                "test_process_lock_costing_selector",
+                "test_notebook2",
             ],
             "cwd": "${workspaceFolder}"
         },
