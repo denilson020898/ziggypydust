@@ -35,7 +35,7 @@ partner_dict = {
     "CONS104": {
         "display_name": "CON10850",
         "partner_id": 71949,
-        "partner_user_id": None,
+        "partner_user_id": 123,
         "schedule_cost": "monthly",
     },
 }
