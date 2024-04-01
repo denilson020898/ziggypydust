@@ -41,7 +41,7 @@ pub const DateTime = struct {
     }
 
     pub fn now() Self {
-        return initUnixMs(@intCast(std.time.milliTimestamp()));
+        return initUnixMs(@as(u64, @intCast(std.time.milliTimestamp())));
     }
 
     pub const epoch_unix = Self{
@@ -307,13 +307,8 @@ pub const DateTime = struct {
 
                     .ISO => try writer.print("{:0>4}-{:0>2}:{:0>2} {:0>2}:{:0>2}:{:0>2}.{:0>3} {s}", .{
                         self.years,
-
-                        // NOTE: Note sure why months and days + 1
-                        // self.months + 1,
-                        // self.days + 1,
-                        self.months,
-                        self.days,
-
+                        self.months + 1,
+                        self.days + 1,
                         self.hours,
                         self.minutes,
                         self.seconds,

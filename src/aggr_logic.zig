@@ -47,7 +47,7 @@ fn selfConcat(a: []const u8, b: []const u8, out: []u8) void {
 }
 
 fn stackBufferSize() comptime_int {
-    return 128;
+    return 64;
 }
 
 fn castSentinelToSlice(input_slice: []const u8) []const u8 {
@@ -156,9 +156,9 @@ pub fn loopCosting(
         var data = try getPartnerData(partner_dict, per_row_lock.mitra_code_genesis);
 
         // _ = per_row_lock;
-        _ = data;
+        // _ = data;
 
-        // std.debug.print("{}{}\n", .{ per_row_lock, data });
+        std.debug.print("{}{}\n", .{ per_row_lock, data });
 
         // const lock_query = f"UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
         // const lock_query = "UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
@@ -193,6 +193,9 @@ pub const PartnerData = struct {
 pub const PartnerDataError = error{
     MitraNotFound,
 };
+
+// pub const ScheduleError = error{
+// };
 
 pub fn getPartnerData(partner_dict: *const py.PyDict, mitra_code: []const u8) !PartnerData {
     const py_sc = try py.PyString.create("schedule_cost");
@@ -249,7 +252,7 @@ test "time lib" {
     const init_new = time.DateTime.init(2024, 3, 3, 3, 3, 3);
 
     std.debug.print("\n\n\tnow wib is {iso}\n", .{init_new});
-    std.debug.print("\n\t\t\t new value {} {} {}", .{ init_new.years, init_new.months, init_new.days });
+    std.debug.print("\n\t\t\t new value {D} {Do} {DD}", .{ init_new, init_new, init_new });
 }
 
 // const zigstr = @import("zigstr");
