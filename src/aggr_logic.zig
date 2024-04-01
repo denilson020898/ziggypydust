@@ -125,6 +125,7 @@ pub fn loopCosting(
             partner_dict,
         );
 
+        // _ = cs;
         std.debug.print("{}\n", .{cs});
 
         // const lock_query = f"UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
