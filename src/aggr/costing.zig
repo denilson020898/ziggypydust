@@ -155,23 +155,35 @@ pub const Costing = struct {
         _: std.fmt.FormatOptions,
         writer: anytype,
     ) !void {
-        try writer.writeAll("Costing{\n");
+        // try writer.writeAll("Costing{\n");
+        // _ = try writer.print("\t== LockCosting ==\n", .{});
+        // _ = try writer.print("\tcosting_number: {s},\n", .{c.lock_costing.costing_number});
+        // _ = try writer.print("\tlatest_costing_number_ts: {s},\n", .{c.lock_costing.latest_costing_number_ts});
+        // _ = try writer.print("\tmitra_code_genesis: {s},\n", .{c.lock_costing.mitra_code_genesis});
+        // _ = try writer.print("\tstt_booked_date: {s},\n", .{c.lock_costing.stt_booked_date});
+        // _ = try writer.print("\tstt_pod_date: {s},\n", .{c.lock_costing.stt_pod_date});
+        // _ = try writer.print("\tetl_date: {s},\n", .{c.lock_costing.etl_date});
+        // _ = try writer.print("\t== PartnerData ==\n", .{});
+        // _ = try writer.print("\tschedule_cost: {s},\n", .{c.partner_data.schedule_cost});
+        // _ = try writer.print("\todoo_partner_id: {},\n", .{c.partner_data.odoo_partner_id});
+        // _ = try writer.print("\todoo_partner_user_id: {any},\n", .{c.partner_data.odoo_partner_user_id});
+        // _ = try writer.print("\t== Scheduling ==\n", .{});
+        // _ = try writer.print("\tschedule_date: {YYYY-MM-DD} {HH}:{mm}:{ss},\n", .{ c.schedule_date, c.schedule_date, c.schedule_date, c.schedule_date });
+        // _ = try writer.print("\tis_delay: {},\n", .{c.is_delay});
+        // try writer.writeAll("}\n");
+        _ = try writer.print("UPDATE costing_selector SET costing_number_ts='{s}', schedule_cost='{s}', odoo_partner_id={any}, odoo_partner_user_id={any}, bill_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}', is_delayed={any} WHERE costing_number='{s}';", .{
+            c.lock_costing.latest_costing_number_ts,
+            c.partner_data.schedule_cost,
+            c.partner_data.odoo_partner_id,
+            c.partner_data.odoo_partner_user_id,
 
-        _ = try writer.print("\t== LockCosting ==\n", .{});
-        _ = try writer.print("\tcosting_number: {s},\n", .{c.lock_costing.costing_number});
-        _ = try writer.print("\tlatest_costing_number_ts: {s},\n", .{c.lock_costing.latest_costing_number_ts});
-        _ = try writer.print("\tmitra_code_genesis: {s},\n", .{c.lock_costing.mitra_code_genesis});
-        _ = try writer.print("\tstt_booked_date: {s},\n", .{c.lock_costing.stt_booked_date});
-        _ = try writer.print("\tstt_pod_date: {s},\n", .{c.lock_costing.stt_pod_date});
-        _ = try writer.print("\tetl_date: {s},\n", .{c.lock_costing.etl_date});
-        _ = try writer.print("\t== PartnerData ==\n", .{});
-        _ = try writer.print("\tschedule_cost: {s},\n", .{c.partner_data.schedule_cost});
-        _ = try writer.print("\todoo_partner_id: {},\n", .{c.partner_data.odoo_partner_id});
-        _ = try writer.print("\todoo_partner_user_id: {any},\n", .{c.partner_data.odoo_partner_user_id});
-        _ = try writer.print("\t== Scheduling ==\n", .{});
-        _ = try writer.print("\tschedule_date: {YYYY-MM-DD} {HH}:{mm}:{ss},\n", .{ c.schedule_date, c.schedule_date, c.schedule_date, c.schedule_date });
-        _ = try writer.print("\tis_delay: {},\n", .{c.is_delay});
+            c.schedule_date,
+            c.schedule_date,
+            c.schedule_date,
+            c.schedule_date,
 
-        try writer.writeAll("}\n");
+            c.is_delay,
+            c.lock_costing.costing_number,
+        });
     }
 };

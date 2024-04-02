@@ -53,10 +53,10 @@ print(len(partner_dict))
 start_time = time.perf_counter()
 
 a = _lib.process_lock_costing_selector(n, n.itemsize, n.shape[0], n.shape[1], n.strides[0], n.strides[1], partner_dict)
-print(a)
 
 end_time = time.perf_counter()
 elapsed_time = end_time - start_time
 print("Elapsed time call zig function: ", elapsed_time)
+print(len(a))
 
 # %%

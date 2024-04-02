@@ -2,6 +2,7 @@ const std = @import("std");
 const py = @import("pydust");
 
 const logic = @import("aggr_logic.zig");
+const costing = @import("aggr/costing.zig");
 
 pub fn process_lock_costing_selector(args: struct {
     buf: py.PyObject,
@@ -11,8 +12,20 @@ pub fn process_lock_costing_selector(args: struct {
     stride_x: usize,
     stride_y: usize,
     partner_dict: py.PyDict,
-}) !u64 {
-    const result = try logic.loopCosting(
+}) !py.PyString {
+    // var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    // defer arena.deinit();
+    // const allocator = arena.allocator();
+
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+    var list = std.ArrayList(costing.Costing).init(allocator);
+    defer list.deinit();
+
+    try logic.loopCosting(
+        allocator,
+        &list,
         &args.buf,
         args.itemsize,
         args.shape_x,
@@ -21,7 +34,16 @@ pub fn process_lock_costing_selector(args: struct {
         args.stride_y,
         &args.partner_dict,
     );
-    return result;
+
+    // _ = result;
+    std.debug.print("capacity is {any}\n", .{list.items.len});
+
+    for (list.items) |cs| {
+        std.debug.print("{}\n", .{cs});
+    }
+
+    const py_str = try py.PyString.create("HAHA");
+    return py_str;
 }
 
 // const zigstr = @import("zigstr");

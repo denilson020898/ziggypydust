@@ -9,23 +9,29 @@ fn stackBufferSize() comptime_int {
     return 64;
 }
 
-/// caller must free the returned bytes manually
-fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Allocator.Error![]u8 {
-    const result = try allocator.alloc(u8, a.len + b.len);
-    // std.mem.copy(u8, result, a);
-    // std.mem.copy(u8, result[a.len..], b);
-    @memcpy(result, a);
-    @memcpy(result[a.len..], b);
-    return result;
-}
-
 fn selfConcat(a: []const u8, b: []const u8, out: []u8) void {
     std.debug.assert(out.len >= a.len + b.len);
     std.mem.copy(u8, out, a);
     std.mem.copy(u8, out[a.len..], b);
 }
 
+/// caller must free the returned bytes manually
+fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Allocator.Error![]u8 {
+    const result = try allocator.alloc(u8, a.len + b.len);
+    std.mem.copy(u8, result, a);
+    std.mem.copy(u8, result[a.len..], b);
+    // @memcpy(result, a);
+    // @memcpy(result[a.len..], b);
+    return result;
+}
+
+// pub const CostingQuery = struct {
+//     query: []const u8,
+// };
+
 pub fn loopCosting(
+    allocator: std.mem.Allocator,
+    list: *std.ArrayList(costing.Costing),
     buf: *const py.PyObject,
     itemsize: usize,
     shape_x: usize,
@@ -33,28 +39,23 @@ pub fn loopCosting(
     stride_x: usize,
     stride_y: usize,
     partner_dict: *const py.PyDict,
-) !u64 {
+) !void {
+    _ = allocator;
     std.debug.assert(itemsize > 0);
     std.debug.assert(shape_x > 0);
     std.debug.assert(shape_y > 0);
     std.debug.assert(stride_x > 0);
     std.debug.assert(stride_y > 0);
 
-    std.debug.print("\t\tlen partner_dict {}\n", .{partner_dict.length()});
-
-    var result: u64 = 0;
-
     const view = try buf.getBuffer(py.PyBuffer.Flags.ND);
     defer view.release();
-
-    std.debug.print("\t##{any}\n", .{view});
 
     const len_x = shape_x * shape_y * itemsize;
     const arr_ptr = view.asSlice(u8)[0..len_x];
 
-    // var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    // defer arena.deinit();
-    // const allocator = arena.allocator();
+    // var result: []const u8 = "bobo";
+    //
+    // var total_len: usize = 0;
 
     for (0..shape_x) |x| {
         const lower_offset_x = x * stride_x;
@@ -124,17 +125,22 @@ pub fn loopCosting(
             &etl_date,
             partner_dict,
         );
-
         // _ = cs;
-        std.debug.print("{}\n", .{cs});
 
-        // const lock_query = f"UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
-        // const lock_query = "UPDATE costing_selector SET costing_number_ts='{costing_number_ts}', schedule_cost='{schedule_cost}', odoo_partner_id={odoo_partner_id}, odoo_partner_user_id={odoo_partner_user_id or 'NULL'}, bill_schedule_date='{bill_schedule_date}', is_delayed={schedule_delay} WHERE costing_number='{costing_number}';\n";
-
-        result += 1;
+        // const newline = try std.fmt.allocPrint(allocator, "{}\n", .{cs});
+        // defer allocator.free(newline);
+        // _ = newline;
+        // defer allocator.free(newline);
+        // total_len += newline.len;
+        // std.debug.print("{}\n", .{cs});
+        try list.append(cs);
     }
 
-    return result;
+    std.debug.print("HAHA HIHI", .{});
+    std.debug.print("HAHA HIHI", .{});
+
+    // _ = result;
+    // return &list;
 }
 
 test "time lib" {
