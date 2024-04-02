@@ -30,8 +30,7 @@ fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Al
 // };
 
 pub fn loopCosting(
-    allocator: std.mem.Allocator,
-    list: *std.ArrayList(costing.Costing),
+    out: *std.ArrayList(u8),
     buf: *const py.PyObject,
     itemsize: usize,
     shape_x: usize,
@@ -40,7 +39,6 @@ pub fn loopCosting(
     stride_y: usize,
     partner_dict: *const py.PyDict,
 ) !void {
-    _ = allocator;
     std.debug.assert(itemsize > 0);
     std.debug.assert(shape_x > 0);
     std.debug.assert(shape_y > 0);
@@ -127,20 +125,15 @@ pub fn loopCosting(
         );
         // _ = cs;
 
-        // const newline = try std.fmt.allocPrint(allocator, "{}\n", .{cs});
-        // defer allocator.free(newline);
-        // _ = newline;
-        // defer allocator.free(newline);
-        // total_len += newline.len;
         // std.debug.print("{}\n", .{cs});
-        try list.append(cs);
+        // const new_line = try std.fmt.allocPrint(allocator, "{}", .{cs});
+        // defer allocator.free(new_line);
+        // var new_line_al = std.ArrayList(u8).init(allocator);
+        // try new_line_al.appendSlice(new_line);
+        // try list.append(new_line_al);
+
+        try out.writer().print("{}\n", .{cs});
     }
-
-    std.debug.print("HAHA HIHI", .{});
-    std.debug.print("HAHA HIHI", .{});
-
-    // _ = result;
-    // return &list;
 }
 
 test "time lib" {

@@ -171,7 +171,7 @@ pub const Costing = struct {
         // _ = try writer.print("\tschedule_date: {YYYY-MM-DD} {HH}:{mm}:{ss},\n", .{ c.schedule_date, c.schedule_date, c.schedule_date, c.schedule_date });
         // _ = try writer.print("\tis_delay: {},\n", .{c.is_delay});
         // try writer.writeAll("}\n");
-        _ = try writer.print("UPDATE costing_selector SET costing_number_ts='{s}', schedule_cost='{s}', odoo_partner_id={any}, odoo_partner_user_id={any}, bill_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}', is_delayed={any} WHERE costing_number='{s}';", .{
+        _ = try writer.print("UPDATE costing_selector SET costing_number_ts='{s}',schedule_cost='{s}',odoo_partner_id={any},odoo_partner_user_id={any},bill_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}',is_delayed={any} WHERE costing_number='{s}';", .{
             c.lock_costing.latest_costing_number_ts,
             c.partner_data.schedule_cost,
             c.partner_data.odoo_partner_id,

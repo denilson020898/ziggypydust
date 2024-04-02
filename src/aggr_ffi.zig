@@ -20,12 +20,12 @@ pub fn process_lock_costing_selector(args: struct {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
-    var list = std.ArrayList(costing.Costing).init(allocator);
-    defer list.deinit();
+    // var list = std.ArrayList(std.ArrayList(u8)).init(allocator);
+    var out = std.ArrayList(u8).init(allocator);
+    defer out.deinit();
 
     try logic.loopCosting(
-        allocator,
-        &list,
+        &out,
         &args.buf,
         args.itemsize,
         args.shape_x,
@@ -36,13 +36,21 @@ pub fn process_lock_costing_selector(args: struct {
     );
 
     // _ = result;
-    std.debug.print("capacity is {any}\n", .{list.items.len});
+    // std.debug.print("capacity is {any}\n", .{list.items.len});
 
-    for (list.items) |cs| {
-        std.debug.print("{}\n", .{cs});
-    }
+    // const owned = try list.toOwnedSlice();
+    // std.debug.print("{any}\n", .{owned});
+    // std.debug.print("{s}\n", .{out.items});
 
-    const py_str = try py.PyString.create("HAHA");
+    // var out = std.ArrayList(u8).init(allocator);
+    // defer out.deinit();
+
+    // for (list.items) |cs| {
+    //     try out.writer().print("{s}\n", .{cs.items});
+    //     cs.deinit();
+    // }
+
+    const py_str = try py.PyString.create(out.items);
     return py_str;
 }
 
