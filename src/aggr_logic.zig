@@ -2,26 +2,7 @@ const std = @import("std");
 const py = @import("pydust");
 
 const time = @import("time.zig");
-
 const costing = @import("aggr/costing.zig");
-
-fn stackBufferSize() comptime_int {
-    return 64;
-}
-
-fn selfConcat(a: []const u8, b: []const u8, out: []u8) void {
-    std.debug.assert(out.len >= a.len + b.len);
-    std.mem.copy(u8, out, a);
-    std.mem.copy(u8, out[a.len..], b);
-}
-
-/// caller must free the returned bytes manually
-fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Allocator.Error![]u8 {
-    const result = try allocator.alloc(u8, a.len + b.len);
-    std.mem.copy(u8, result, a);
-    std.mem.copy(u8, result[a.len..], b);
-    return result;
-}
 
 pub fn loopCostingList(
     out: *std.ArrayList(u8),
@@ -30,7 +11,7 @@ pub fn loopCostingList(
 ) !void {
     var i: isize = 0;
     while (i < list.length()) : (i += 1) {
-        const c = try list.getItem(py.PyList, i);
+        const c = try list.getItem(py.PyTuple, i);
 
         var costing_number: []const u8 = undefined;
         var latest_costing_number_ts: []const u8 = undefined;
@@ -39,7 +20,7 @@ pub fn loopCostingList(
         var stt_pod_date: []const u8 = undefined;
         var etl_date: []const u8 = undefined;
 
-        var j: isize = 0;
+        var j: usize = 0;
         while (j < c.length()) : (j += 1) {
             const parsed = try c.getItem([]const u8, j);
             switch (j) {
@@ -64,6 +45,24 @@ pub fn loopCostingList(
         );
         try out.writer().print("{s}\n", .{cs});
     }
+}
+
+fn stackBufferSize() comptime_int {
+    return 64;
+}
+
+fn selfConcat(a: []const u8, b: []const u8, out: []u8) void {
+    std.debug.assert(out.len >= a.len + b.len);
+    std.mem.copy(u8, out, a);
+    std.mem.copy(u8, out[a.len..], b);
+}
+
+/// caller must free the returned bytes manually
+fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Allocator.Error![]u8 {
+    const result = try allocator.alloc(u8, a.len + b.len);
+    std.mem.copy(u8, result, a);
+    std.mem.copy(u8, result[a.len..], b);
+    return result;
 }
 
 pub fn loopCosting(
