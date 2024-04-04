@@ -49,7 +49,8 @@ pub fn loopCostingList(
 }
 
 pub fn recomputeQuery(
-    out: *std.ArrayList(u8),
+    out_airflow: *std.ArrayList(u8),
+    out_odoo: *std.ArrayList(u8),
     list: *const py.PyList,
 ) !void {
     var i: isize = 0;
@@ -63,15 +64,17 @@ pub fn recomputeQuery(
                 const result = if (py.is_none(pyobj)) null else try c.getItem(field_info.type, idx);
                 break :parsed result;
             } else parsed: {
-                break :parsed try c.getItem(field_info.type, idx);
+                const result = try c.getItem(field_info.type, idx);
+                // std.debug.print("##\t\t{} {s} {any}\n", .{ idx, field_info.name, result });
+                break :parsed result;
             };
             // std.debug.print("idx {} -> {s} {any} {any}\n", .{ idx, field_info.name, field_info.type, parsed });
 
             @field(recom, field_info.name) = parsed;
         }
-        std.debug.print("{}\n", .{recom});
-
-        try out.writer().print("{s}\n", .{"HAHA"});
+        // std.debug.print("{}\n", .{recom});
+        try out_airflow.writer().print("{airflow}\n", .{recom});
+        try out_odoo.writer().print("{odoo}\n", .{recom});
     }
 }
 

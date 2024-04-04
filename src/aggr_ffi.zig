@@ -57,21 +57,33 @@ pub fn process_lock_costing_selector(args: struct {
 
 pub fn generate_recompute_queries(args: struct {
     list: py.PyList,
-}) !py.PyString {
+}) !py.PyList {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var out = std.ArrayList(u8).init(allocator);
-    defer out.deinit();
+    var out_airflow = std.ArrayList(u8).init(allocator);
+    defer out_airflow.deinit();
+
+    var out_odoo = std.ArrayList(u8).init(allocator);
+    defer out_odoo.deinit();
 
     try logic.recomputeQuery(
-        &out,
+        &out_airflow,
+        &out_odoo,
         &args.list,
     );
 
-    const py_str = try py.PyString.create(out.items);
-    return py_str;
+    const py_str_airflow = try py.PyString.create(out_airflow.items);
+    const py_str_odoo = try py.PyString.create(out_odoo.items);
+
+    var result = try py.PyList.new(2);
+    try result.setItem(0, py_str_airflow);
+    try result.setItem(1, py_str_odoo);
+
+    // var result = try py.PyList.
+
+    return result;
 }
 
 // // A simple fibonacci implementation.
