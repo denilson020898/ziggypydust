@@ -13,13 +13,13 @@ print("lock costing selector result", len(result))
 
 # %%
 
-n = np.array(result)
-print()
-print(f"itemsize: {n.itemsize}, ndim: {n.ndim}, shape: {n.shape}, strides: {n.strides}, dtype: {n.dtype}")
-print()
+# n = np.array(result)
+# print()
+# print(f"itemsize: {n.itemsize}, ndim: {n.ndim}, shape: {n.shape}, strides: {n.strides}, dtype: {n.dtype}")
+# print()
 
-del result
-gc.collect()
+# del result
+# gc.collect()
 
 # %%
 # s3_target = boto3.resource(
@@ -54,13 +54,8 @@ print(len(partner_dict))
 # %%
 start_time = time.perf_counter()
 
-a = _lib.process_lock_costing_selector(
-    n,
-    n.itemsize,
-    n.shape[0],
-    n.shape[1],
-    n.strides[0],
-    n.strides[1],
+a = _lib.process_lock_costing_selector_list(
+    result,
     partner_dict,
 )
 

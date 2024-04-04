@@ -33,6 +33,7 @@ pub const Costing = struct {
         stt_pod_date: []const u8,
         etl_date: []const u8,
         partner_dict: *const py.PyDict,
+        cast_sentinel: bool,
     ) !Self {
         var result = create(
             costing_number,
@@ -41,6 +42,7 @@ pub const Costing = struct {
             stt_booked_date,
             stt_pod_date,
             etl_date,
+            cast_sentinel,
         );
 
         // it's important to use result.lock_costing.mitra_code_genesis
@@ -59,15 +61,29 @@ pub const Costing = struct {
         stt_booked_date: []const u8,
         stt_pod_date: []const u8,
         etl_date: []const u8,
+        cast_sentinel: bool,
     ) Self {
-        const lock_costing = LockCosting{
-            .costing_number = castSentinelToSlice(costing_number),
-            .latest_costing_number_ts = castSentinelToSlice(latest_costing_number_ts),
-            .mitra_code_genesis = castSentinelToSlice(mitra_code_genesis),
-            .stt_booked_date = castSentinelToSlice(stt_booked_date),
-            .stt_pod_date = castSentinelToSlice(stt_pod_date),
-            .etl_date = castSentinelToSlice(etl_date),
-        };
+        var lock_costing: LockCosting = undefined;
+
+        if (cast_sentinel) {
+            lock_costing = LockCosting{
+                .costing_number = castSentinelToSlice(costing_number),
+                .latest_costing_number_ts = castSentinelToSlice(latest_costing_number_ts),
+                .mitra_code_genesis = castSentinelToSlice(mitra_code_genesis),
+                .stt_booked_date = castSentinelToSlice(stt_booked_date),
+                .stt_pod_date = castSentinelToSlice(stt_pod_date),
+                .etl_date = castSentinelToSlice(etl_date),
+            };
+        } else {
+            lock_costing = LockCosting{
+                .costing_number = costing_number,
+                .latest_costing_number_ts = latest_costing_number_ts,
+                .mitra_code_genesis = mitra_code_genesis,
+                .stt_booked_date = stt_booked_date,
+                .stt_pod_date = stt_pod_date,
+                .etl_date = etl_date,
+            };
+        }
 
         return .{
             .lock_costing = lock_costing,

@@ -41,7 +41,7 @@ result = [
 ]
 # %%
 
-n = np.array(result)
+# n = np.array(result)
 
 partner_dict = {
     "LION AIR CARGO": {
@@ -59,15 +59,21 @@ partner_dict = {
 }
 
 # #%%
-a = _lib.process_lock_costing_selector(
-    n,
-    n.itemsize,
-    n.shape[0],
-    n.shape[1],
-    n.strides[0],
-    n.strides[1],
+
+a = _lib.process_lock_costing_selector_list(
+    result,
     partner_dict,
 )
+
+# a = _lib.process_lock_costing_selector(
+#     n,
+#     n.itemsize,
+#     n.shape[0],
+#     n.shape[1],
+#     n.strides[0],
+#     n.strides[1],
+#     partner_dict,
+# )
 
 # %%
 #

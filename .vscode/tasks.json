@@ -11,7 +11,22 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "type": "shell"
+            "type": "shell",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
+        {
+            "label": "run nbs notebook",
+            "type": "shell",
+            "command": "zig build && python test/notebook2.py",
+        },
+        {
+            "label": "run nbs recompute",
+            "type": "shell",
+            "command": "zig build && python test/recompute.py",
+        }
     ]
 }

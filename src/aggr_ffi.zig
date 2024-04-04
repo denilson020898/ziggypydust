@@ -4,6 +4,27 @@ const py = @import("pydust");
 const logic = @import("aggr_logic.zig");
 const costing = @import("aggr/costing.zig");
 
+pub fn process_lock_costing_selector_list(args: struct {
+    list: py.PyList,
+    partner_dict: py.PyDict,
+}) !py.PyString {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var out = std.ArrayList(u8).init(allocator);
+    defer out.deinit();
+
+    try logic.loopCostingList(
+        &out,
+        &args.list,
+        &args.partner_dict,
+    );
+
+    const py_str = try py.PyString.create(out.items);
+    return py_str;
+}
+
 pub fn process_lock_costing_selector(args: struct {
     buf: py.PyObject,
     itemsize: usize,
@@ -13,14 +34,9 @@ pub fn process_lock_costing_selector(args: struct {
     stride_y: usize,
     partner_dict: py.PyDict,
 }) !py.PyString {
-    // var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    // defer arena.deinit();
-    // const allocator = arena.allocator();
-
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
-    // var list = std.ArrayList(std.ArrayList(u8)).init(allocator);
     var out = std.ArrayList(u8).init(allocator);
     defer out.deinit();
 
@@ -35,26 +51,9 @@ pub fn process_lock_costing_selector(args: struct {
         &args.partner_dict,
     );
 
-    // _ = result;
-    // std.debug.print("capacity is {any}\n", .{list.items.len});
-
-    // const owned = try list.toOwnedSlice();
-    // std.debug.print("{any}\n", .{owned});
-    // std.debug.print("{s}\n", .{out.items});
-
-    // var out = std.ArrayList(u8).init(allocator);
-    // defer out.deinit();
-
-    // for (list.items) |cs| {
-    //     try out.writer().print("{s}\n", .{cs.items});
-    //     cs.deinit();
-    // }
-
     const py_str = try py.PyString.create(out.items);
     return py_str;
 }
-
-// const zigstr = @import("zigstr");
 
 pub fn variadic(
     args: struct {

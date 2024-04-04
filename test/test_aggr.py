@@ -116,3 +116,7 @@ def test_process_lock_costing_selector_exploration():
 
 def test_notebook2():
     import test.notebook2
+
+
+def test_recompute():
+    import test.recompute

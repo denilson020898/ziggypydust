@@ -20,14 +20,51 @@ fn concat(allocator: std.mem.Allocator, a: []const u8, b: []const u8) std.mem.Al
     const result = try allocator.alloc(u8, a.len + b.len);
     std.mem.copy(u8, result, a);
     std.mem.copy(u8, result[a.len..], b);
-    // @memcpy(result, a);
-    // @memcpy(result[a.len..], b);
     return result;
 }
 
-// pub const CostingQuery = struct {
-//     query: []const u8,
-// };
+pub fn loopCostingList(
+    out: *std.ArrayList(u8),
+    list: *const py.PyList,
+    partner_dict: *const py.PyDict,
+) !void {
+    var i: isize = 0;
+    while (i < list.length()) : (i += 1) {
+        const c = try list.getItem(py.PyList, i);
+
+        var costing_number: []const u8 = undefined;
+        var latest_costing_number_ts: []const u8 = undefined;
+        var mitra_code_genesis: []const u8 = undefined;
+        var stt_booked_date: []const u8 = undefined;
+        var stt_pod_date: []const u8 = undefined;
+        var etl_date: []const u8 = undefined;
+
+        var j: isize = 0;
+        while (j < c.length()) : (j += 1) {
+            const parsed = try c.getItem([]const u8, j);
+            switch (j) {
+                0 => costing_number = parsed,
+                1 => latest_costing_number_ts = parsed,
+                2 => mitra_code_genesis = parsed,
+                3 => stt_booked_date = parsed,
+                4 => stt_pod_date = parsed,
+                5 => etl_date = parsed,
+                else => unreachable,
+            }
+        }
+        const cs = try costing.Costing.lock(
+            costing_number,
+            latest_costing_number_ts,
+            mitra_code_genesis,
+            stt_booked_date,
+            stt_pod_date,
+            etl_date,
+            partner_dict,
+            false,
+        );
+        try out.writer().print("{s}\n", .{cs});
+    }
+}
 
 pub fn loopCosting(
     out: *std.ArrayList(u8),
@@ -51,21 +88,10 @@ pub fn loopCosting(
     const len_x = shape_x * shape_y * itemsize;
     const arr_ptr = view.asSlice(u8)[0..len_x];
 
-    // var result: []const u8 = "bobo";
-    //
-    // var total_len: usize = 0;
-
     for (0..shape_x) |x| {
         const lower_offset_x = x * stride_x;
         const upper_offset_x = lower_offset_x + stride_x;
         const row = arr_ptr[lower_offset_x..upper_offset_x];
-
-        // var costing_number: []const u8 = undefined;
-        // var latest_costing_number_ts: []const u8 = undefined;
-        // var mitra_code_genesis: []const u8 = undefined;
-        // var stt_booked_date: []const u8 = undefined;
-        // var stt_pod_date: []const u8 = undefined;
-        // var etl_date: []const u8 = undefined;
 
         var costing_number: [stackBufferSize()]u8 = undefined;
         var latest_costing_number_ts: [stackBufferSize()]u8 = undefined;
@@ -83,13 +109,10 @@ pub fn loopCosting(
             var slice_value: [256]u8 = undefined;
             var slice_end_idx: usize = 0;
 
-            // var values: []u8 = "";
             var idx: usize = 0;
             while (idx < per_row.len) : (idx += 4) {
                 const new = per_row[idx .. idx + 1];
                 if (!std.mem.eql(u8, new, "\x00")) {
-                    // values = try concat(allocator, values, new);
-
                     const current_slice = slice_value[0..slice_end_idx];
                     slice_end_idx += 1;
                     selfConcat(current_slice, new, &slice_value);
@@ -112,8 +135,6 @@ pub fn loopCosting(
             }
         }
 
-        // const costing_number_sent: []const u8 = std.mem.span(sentinel[]);
-
         const cs = try costing.Costing.lock(
             &costing_number,
             &latest_costing_number_ts,
@@ -122,15 +143,8 @@ pub fn loopCosting(
             &stt_pod_date,
             &etl_date,
             partner_dict,
+            true,
         );
-        // _ = cs;
-
-        // std.debug.print("{}\n", .{cs});
-        // const new_line = try std.fmt.allocPrint(allocator, "{}", .{cs});
-        // defer allocator.free(new_line);
-        // var new_line_al = std.ArrayList(u8).init(allocator);
-        // try new_line_al.appendSlice(new_line);
-        // try list.append(new_line_al);
 
         try out.writer().print("{}\n", .{cs});
     }
