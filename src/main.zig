@@ -1,16 +1,14 @@
 const std = @import("std");
 
 const time = @import("time.zig");
+const recompute = @import("aggr/recompute.zig");
 
 pub fn main() !void {
-    const now = time.now();
-    std.debug.print("\nnow wib is {ISO}\n", .{now});
+    // for (@typeInfo(recompute.RecomputeFields).Struct.fields) |f| {
+    //     std.debug.print("{any}", .{f});
+    // }
 
-    const stt_pod_date = "2024-03-18 07:53:05";
-    parseDate(stt_pod_date);
-}
-
-fn parseDate(input: []const u8) void {
-    std.debug.print("{s}\n", .{input});
-    return;
+    inline for (std.meta.fields(recompute.RecomputeFields)) |field_info| {
+        std.debug.print("{s}\n", .{field_info.name});
+    }
 }

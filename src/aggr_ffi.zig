@@ -55,17 +55,23 @@ pub fn process_lock_costing_selector(args: struct {
     return py_str;
 }
 
-pub fn variadic(
-    args: struct {
-        hello: py.PyString,
-        input_dict: py.PyDict,
-        mitra_code: []const u8,
-    },
-) !py.PyString {
-    const hello = try args.hello.asSlice();
-    std.debug.print("\n\thello {s}\n", .{hello});
-    const result = try py.PyString.create(args.mitra_code);
-    return result;
+pub fn generate_recompute_queries(args: struct {
+    list: py.PyList,
+}) !py.PyString {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var out = std.ArrayList(u8).init(allocator);
+    defer out.deinit();
+
+    try logic.recomputeQuery(
+        &out,
+        &args.list,
+    );
+
+    const py_str = try py.PyString.create(out.items);
+    return py_str;
 }
 
 // // A simple fibonacci implementation.

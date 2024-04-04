@@ -3,6 +3,7 @@ const py = @import("pydust");
 
 const time = @import("time.zig");
 const costing = @import("aggr/costing.zig");
+const recompute = @import("aggr/recompute.zig");
 
 pub fn loopCostingList(
     out: *std.ArrayList(u8),
@@ -44,6 +45,33 @@ pub fn loopCostingList(
             false,
         );
         try out.writer().print("{s}\n", .{cs});
+    }
+}
+
+pub fn recomputeQuery(
+    out: *std.ArrayList(u8),
+    list: *const py.PyList,
+) !void {
+    var i: isize = 0;
+    while (i < list.length()) : (i += 1) {
+        const c = try list.getItem(py.PyTuple, i);
+
+        var recom = recompute.RecomputeFields{};
+        inline for (std.meta.fields(recompute.RecomputeFields), 0..) |field_info, idx| {
+            const parsed = if (@typeInfo(field_info.type) == .Optional) parsed: {
+                const pyobj = try c.getItem(py.PyObject, idx);
+                const result = if (py.is_none(pyobj)) null else try c.getItem(field_info.type, idx);
+                break :parsed result;
+            } else parsed: {
+                break :parsed try c.getItem(field_info.type, idx);
+            };
+            // std.debug.print("idx {} -> {s} {any} {any}\n", .{ idx, field_info.name, field_info.type, parsed });
+
+            @field(recom, field_info.name) = parsed;
+        }
+        std.debug.print("{}\n", .{recom});
+
+        try out.writer().print("{s}\n", .{"HAHA"});
     }
 }
 

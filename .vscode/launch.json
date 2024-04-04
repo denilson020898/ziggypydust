@@ -47,8 +47,8 @@
                 "pytest",
                 "-s",
                 "-k",
-                "test_notebook2",
-                // "test_recompute",
+                // "test_notebook2",
+                "test_recompute",
             ],
             "cwd": "${workspaceFolder}"
         },
