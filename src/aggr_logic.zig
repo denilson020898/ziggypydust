@@ -9,6 +9,7 @@ pub fn loopCostingList(
     out: *std.ArrayList(u8),
     list: *const py.PyList,
     partner_dict: *const py.PyDict,
+    schedule_day: u64,
 ) !void {
     var i: isize = 0;
     while (i < list.length()) : (i += 1) {
@@ -43,6 +44,7 @@ pub fn loopCostingList(
             etl_date,
             partner_dict,
             false,
+            schedule_day,
         );
         try out.writer().print("{s}\n", .{cs});
     }
@@ -174,6 +176,7 @@ pub fn loopCosting(
             &etl_date,
             partner_dict,
             true,
+            20,
         );
 
         try out.writer().print("{}\n", .{cs});

@@ -7,6 +7,7 @@ const costing = @import("aggr/costing.zig");
 pub fn process_lock_costing_selector_list(args: struct {
     list: py.PyList,
     partner_dict: py.PyDict,
+    schedule_day: u64,
 }) !py.PyString {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -19,6 +20,7 @@ pub fn process_lock_costing_selector_list(args: struct {
         &out,
         &args.list,
         &args.partner_dict,
+        args.schedule_day,
     );
 
     const py_str = try py.PyString.create(out.items);

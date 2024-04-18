@@ -55,6 +55,7 @@ partner_dict = {
 a = _lib.process_lock_costing_selector_list(
     result,
     partner_dict,
+    22
 )
 
 # a = _lib.process_lock_costing_selector(

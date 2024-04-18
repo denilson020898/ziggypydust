@@ -34,6 +34,7 @@ pub const Costing = struct {
         etl_date: []const u8,
         partner_dict: *const py.PyDict,
         cast_sentinel: bool,
+        schedule_day: u64,
     ) !Self {
         var result = create(
             costing_number,
@@ -49,7 +50,7 @@ pub const Costing = struct {
         // because it has been casted to the proper sentinel slice length
         result.partner_data = try pd.getPartnerData(partner_dict, result.lock_costing.mitra_code_genesis);
 
-        try result.calculateSchedule();
+        try result.calculateSchedule(schedule_day);
 
         return result;
     }
@@ -92,10 +93,13 @@ pub const Costing = struct {
         };
     }
 
-    fn calculateSchedule(self: *Self) !void {
+    fn calculateSchedule(
+        self: *Self,
+        schedule_day: u64,
+    ) !void {
         // self.lock_costing
         const stt_pod_date = try parseOdooDate(self.lock_costing.stt_pod_date);
-        var schedule_date = calculateScheduleDate(&stt_pod_date);
+        var schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
         const etl_date = try parseOdooDate(self.lock_costing.etl_date);
         const a = time.DateTime.toUnix(schedule_date);
         const b = time.DateTime.toUnix(etl_date);
@@ -107,7 +111,10 @@ pub const Costing = struct {
         self.schedule_date = schedule_date;
     }
 
-    fn calculateScheduleDate(pod_date: *const time.DateTime) time.DateTime {
+    fn calculateScheduleDate(
+        pod_date: *const time.DateTime,
+        schedule_day: u64,
+    ) time.DateTime {
         var year: u16 = pod_date.years;
         var month: u16 = pod_date.months;
         var day: u16 = 1;
@@ -123,7 +130,10 @@ pub const Costing = struct {
             min,
             sec,
         );
-        result = result.addMonths(1).addDays(18).addSecs(1);
+
+        const target_date = schedule_day - 2;
+
+        result = result.addMonths(1).addDays(target_date).addSecs(1);
         return result;
     }
 
