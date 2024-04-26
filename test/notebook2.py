@@ -10,9 +10,9 @@ result = [
         "11LP1706670615679;CONS104;2",
         "20240327T062344;11LP1706670615679;CONS104;2",
         "CONS104",
-        "2023-01-31 03:10:15",
-        "2023-11-03 01:11:59",
-        "2024-03-18 07:53:05",
+        "2023-05-31 03:10:15",
+        "2024-04-03 01:11:59",
+        "2024-04-23 17:00:00",
     ),
     (
         "11LP1706670615679;LION AIR CARGO;3",
@@ -20,7 +20,7 @@ result = [
         "LION AIR CARGO",
         "2024-01-31 03:10:15",
         "2024-02-03 01:11:59",
-        "2024-03-18 07:53:05",
+        "2024-03-20 07:53:05",
     ),
     (
         "21LP1706670615679;CONS104;2",
@@ -32,8 +32,6 @@ result = [
     ),
 ]
 # %%
-
-# n = np.array(result)
 
 partner_dict = {
     "LION AIR CARGO": {
@@ -55,18 +53,8 @@ partner_dict = {
 a = _lib.process_lock_costing_selector_list(
     result,
     partner_dict,
-    22
+    20
 )
-
-# a = _lib.process_lock_costing_selector(
-#     n,
-#     n.itemsize,
-#     n.shape[0],
-#     n.shape[1],
-#     n.strides[0],
-#     n.strides[1],
-#     partner_dict,
-# )
 
 # %%
 #

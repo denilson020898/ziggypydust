@@ -103,8 +103,9 @@ pub const Costing = struct {
         const etl_date = try parseOdooDate(self.lock_costing.etl_date);
         const a = time.DateTime.toUnix(schedule_date);
         const b = time.DateTime.toUnix(etl_date);
+
         if (a < b) {
-            schedule_date = schedule_date.addDays(5);
+            schedule_date = calculateScheduleDate(&etl_date, schedule_day);
             self.is_delay = true;
         }
 
@@ -112,11 +113,11 @@ pub const Costing = struct {
     }
 
     fn calculateScheduleDate(
-        pod_date: *const time.DateTime,
+        base_date: *const time.DateTime,
         schedule_day: u64,
     ) time.DateTime {
-        var year: u16 = pod_date.years;
-        var month: u16 = pod_date.months;
+        var year: u16 = base_date.years;
+        var month: u16 = base_date.months;
         var day: u16 = 1;
         var hr: u16 = 0;
         var min: u16 = 0;
