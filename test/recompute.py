@@ -84,6 +84,7 @@ import psycopg2
 #                         to_char(etl_date, 'YYYY-MM-DD HH24:MI:SS') as etl_date,
 #                         handling_cost::float,
 #                         other_cost::float,
+#                         bonus_dtpol::float,
 #                         costing_number_ts,
 #                         route_rank
 #                     FROM costing_number_ingest
@@ -161,6 +162,7 @@ latest_cni_values = [
         "2024-03-18 07:53:05",
         0.0,
         0.0,
+        312.0,
         "20240327T062344;11LP1706667045401;CONS138;1",
         1,
     ),
@@ -215,6 +217,7 @@ latest_cni_values = [
         "2024-03-18 07:53:05",
         0.0,
         0.0,
+        -123.0,
         "20240327T062344;11LP1706667045401;CONS138;3",
         3,
     ),

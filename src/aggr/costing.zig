@@ -182,19 +182,18 @@ pub const Costing = struct {
         _: std.fmt.FormatOptions,
         writer: anytype,
     ) !void {
-        _ = try writer.print("UPDATE costing_selector SET costing_number_ts='{s}',schedule_cost='{s}',odoo_partner_id={any},odoo_partner_user_id={any},bill_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}',is_delayed={any} WHERE costing_number='{s}';", .{
-            c.lock_costing.latest_costing_number_ts,
-            c.partner_data.schedule_cost,
-            c.partner_data.odoo_partner_id,
-            c.partner_data.odoo_partner_user_id,
-
+        try writer.writeAll("UPDATE costing_selector SET ");
+        _ = try writer.print("costing_number_ts='{s}',", .{c.lock_costing.latest_costing_number_ts});
+        _ = try writer.print("schedule_cost='{s}',", .{c.partner_data.schedule_cost});
+        _ = try writer.print("odoo_partner_id={any},", .{c.partner_data.odoo_partner_id});
+        _ = try writer.print("odoo_partner_user_id={any},", .{c.partner_data.odoo_partner_user_id});
+        _ = try writer.print("bill_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}',", .{
             c.schedule_date,
             c.schedule_date,
             c.schedule_date,
             c.schedule_date,
-
-            c.is_delay,
-            c.lock_costing.costing_number,
         });
+        _ = try writer.print("is_delayed={any} ", .{c.is_delay});
+        _ = try writer.print("WHERE costing_number='{s}';", .{c.lock_costing.costing_number});
     }
 };
