@@ -104,10 +104,50 @@ pub const Costing = struct {
         const a = time.DateTime.toUnix(schedule_date);
         const b = time.DateTime.toUnix(etl_date);
 
+        // std.debug.print("self: {s}\n", .{self.lock_costing.costing_number});
+        // std.debug.print("first: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        // });
+        //
+        // std.debug.print("etl_date: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        //     etl_date,
+        //     etl_date,
+        //     etl_date,
+        //     etl_date,
+        // });
+
         if (a < b) {
-            schedule_date = calculateScheduleDate(&etl_date, schedule_day);
+            var this_month = time.now();
+            this_month.days = @as(u16, @intCast(schedule_day - 1));
+            this_month.hours = 0;
+            this_month.minutes = 0;
+            this_month.seconds = 1;
+
+            // std.debug.print("this_month: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+            //     this_month,
+            //     this_month,
+            //     this_month,
+            //     this_month,
+            // });
+
+            if (b < time.DateTime.toUnix(this_month)) {
+                schedule_date = this_month;
+            } else {
+                schedule_date = calculateScheduleDate(&etl_date, schedule_day);
+            }
+
             self.is_delay = true;
         }
+
+        // std.debug.print("second: {YYYY-MM-DD} {HH}:{mm}:{ss}\n\n", .{
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        // });
 
         self.schedule_date = schedule_date;
     }
