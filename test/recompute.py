@@ -84,7 +84,7 @@ import psycopg2
 #                         to_char(etl_date, 'YYYY-MM-DD HH24:MI:SS') as etl_date,
 #                         handling_cost::float,
 #                         other_cost::float,
-#                         bonus_dtpol::float,
+#                         total_bonus::float,
 #                         costing_number_ts,
 #                         route_rank
 #                     FROM costing_number_ingest

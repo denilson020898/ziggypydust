@@ -51,7 +51,7 @@ pub const RecomputeFields = struct {
     etl_date: ?[]const u8 = undefined,
     handling_cost: ?f32 = undefined,
     other_cost: ?f32 = undefined,
-    bonus_dtpol: ?f32 = undefined,
+    total_bonus: ?f32 = undefined,
     costing_number_ts: []const u8 = undefined,
     route_rank: u32 = undefined,
 
@@ -175,7 +175,7 @@ pub const RecomputeFields = struct {
         try optOrNull(writer, c, "handling_cost");
         try optOrNull(writer, c, "other_cost");
 
-        try optOrNull(writer, c, "bonus_dtpol");
+        try optOrNull(writer, c, "total_bonus");
 
         _ = try writer.print("costing_number_ts='{s}',", .{c.costing_number_ts});
         _ = try writer.print("route_rank={} ", .{c.route_rank});
