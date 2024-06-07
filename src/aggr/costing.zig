@@ -234,6 +234,7 @@ pub const Costing = struct {
             c.schedule_date,
         });
         _ = try writer.print("is_delayed={any} ", .{c.is_delay});
-        _ = try writer.print("WHERE costing_number='{s}';", .{c.lock_costing.costing_number});
+        _ = try writer.print("WHERE costing_number='{s}'", .{c.lock_costing.costing_number});
+        _ = try writer.print(" AND bill_schedule_date<'{YYYY-MM-DD}';", .{c.schedule_date});
     }
 };
