@@ -100,12 +100,10 @@ pub const Costing = struct {
         // self.lock_costing
         const stt_pod_date = try parseOdooDate(self.lock_costing.stt_pod_date);
         var schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
-        const etl_date = try parseOdooDate(self.lock_costing.etl_date);
-        const a = time.DateTime.toUnix(schedule_date);
-        const b = time.DateTime.toUnix(etl_date);
+        // const etl_date = try parseOdooDate(self.lock_costing.etl_date);
 
-        // std.debug.print("self: {s}\n", .{self.lock_costing.costing_number});
-        // std.debug.print("first: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        // std.debug.print("\nself: {s}\n", .{self.lock_costing.costing_number});
+        // std.debug.print("schedule: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
         //     schedule_date,
         //     schedule_date,
         //     schedule_date,
@@ -119,26 +117,29 @@ pub const Costing = struct {
         //     etl_date,
         // });
 
-        if (a < b) {
-            var this_month = time.now();
-            this_month.days = @as(u16, @intCast(schedule_day - 1));
-            this_month.hours = 0;
-            this_month.minutes = 0;
-            this_month.seconds = 1;
+        // std.debug.print("CHECK A B: {}\n", .{a < b});
 
-            // std.debug.print("this_month: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
-            //     this_month,
-            //     this_month,
-            //     this_month,
-            //     this_month,
-            // });
+        var this_month = time.now();
+        this_month.days = @as(u16, @intCast(schedule_day - 1));
+        this_month.hours = 0;
+        this_month.minutes = 0;
+        this_month.seconds = 1;
 
-            if (b < time.DateTime.toUnix(this_month)) {
-                schedule_date = this_month;
-            } else {
-                schedule_date = calculateScheduleDate(&etl_date, schedule_day);
-            }
+        // std.debug.print("this_month: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        //     this_month,
+        //     this_month,
+        //     this_month,
+        //     this_month,
+        // });
 
+        const s_ts = time.DateTime.toUnix(schedule_date);
+        // const e_ts = time.DateTime.toUnix(etl_date);
+        const t_ts = time.DateTime.toUnix(this_month);
+
+        if (s_ts >= t_ts) {
+            self.is_delay = false;
+        } else {
+            schedule_date = this_month;
             self.is_delay = true;
         }
 
