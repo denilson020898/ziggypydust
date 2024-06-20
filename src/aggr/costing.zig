@@ -1,3 +1,15 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//         http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 const std = @import("std");
 const py = @import("pydust");
 
@@ -10,7 +22,7 @@ const LockCosting = struct {
     mitra_code_genesis: []const u8,
     stt_booked_date: []const u8,
     stt_pod_date: []const u8,
-    etl_date: []const u8,
+    ts_date: []const u8,
 };
 
 pub const Costing = struct {
@@ -31,7 +43,7 @@ pub const Costing = struct {
         mitra_code_genesis: []const u8,
         stt_booked_date: []const u8,
         stt_pod_date: []const u8,
-        etl_date: []const u8,
+        ts_date: []const u8,
         partner_dict: *const py.PyDict,
         cast_sentinel: bool,
         schedule_day: u64,
@@ -42,7 +54,7 @@ pub const Costing = struct {
             mitra_code_genesis,
             stt_booked_date,
             stt_pod_date,
-            etl_date,
+            ts_date,
             cast_sentinel,
         );
 
@@ -61,7 +73,7 @@ pub const Costing = struct {
         mitra_code_genesis: []const u8,
         stt_booked_date: []const u8,
         stt_pod_date: []const u8,
-        etl_date: []const u8,
+        ts_date: []const u8,
         cast_sentinel: bool,
     ) Self {
         var lock_costing: LockCosting = undefined;
@@ -73,7 +85,7 @@ pub const Costing = struct {
                 .mitra_code_genesis = castSentinelToSlice(mitra_code_genesis),
                 .stt_booked_date = castSentinelToSlice(stt_booked_date),
                 .stt_pod_date = castSentinelToSlice(stt_pod_date),
-                .etl_date = castSentinelToSlice(etl_date),
+                .ts_date = castSentinelToSlice(ts_date),
             };
         } else {
             lock_costing = LockCosting{
@@ -82,7 +94,7 @@ pub const Costing = struct {
                 .mitra_code_genesis = mitra_code_genesis,
                 .stt_booked_date = stt_booked_date,
                 .stt_pod_date = stt_pod_date,
-                .etl_date = etl_date,
+                .ts_date = ts_date,
             };
         }
 
@@ -97,27 +109,11 @@ pub const Costing = struct {
         self: *Self,
         schedule_day: u64,
     ) !void {
-        // self.lock_costing
         const stt_pod_date = try parseOdooDate(self.lock_costing.stt_pod_date);
-        var schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
-        // const etl_date = try parseOdooDate(self.lock_costing.etl_date);
+        var pod_schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
 
-        // std.debug.print("\nself: {s}\n", .{self.lock_costing.costing_number});
-        // std.debug.print("schedule: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
-        //     schedule_date,
-        //     schedule_date,
-        //     schedule_date,
-        //     schedule_date,
-        // });
-        //
-        // std.debug.print("etl_date: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
-        //     etl_date,
-        //     etl_date,
-        //     etl_date,
-        //     etl_date,
-        // });
-
-        // std.debug.print("CHECK A B: {}\n", .{a < b});
+        const ts_date = try parseOdooDate(self.lock_costing.ts_date);
+        var ts_schedule_date = calculateScheduleDate(&ts_date, schedule_day);
 
         var this_month = time.now();
         this_month.days = @as(u16, @intCast(schedule_day - 1));
@@ -125,23 +121,49 @@ pub const Costing = struct {
         this_month.minutes = 0;
         this_month.seconds = 1;
 
-        // std.debug.print("this_month: {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        // std.debug.print("\nself: {s}\n", .{self.lock_costing.costing_number});
+        // std.debug.print("pod_schedule_date : {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        //     pod_schedule_date,
+        //     pod_schedule_date,
+        //     pod_schedule_date,
+        //     pod_schedule_date,
+        // });
+        //
+        // std.debug.print("ts_schedule_date : {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
+        //     ts_schedule_date,
+        //     ts_schedule_date,
+        //     ts_schedule_date,
+        //     ts_schedule_date,
+        // });
+        //
+        // std.debug.print("this_month : {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
         //     this_month,
         //     this_month,
         //     this_month,
         //     this_month,
         // });
 
-        const s_ts = time.DateTime.toUnix(schedule_date);
-        // const e_ts = time.DateTime.toUnix(etl_date);
-        const t_ts = time.DateTime.toUnix(this_month);
+        const pod = time.DateTime.toUnix(pod_schedule_date);
+        const ts = time.DateTime.toUnix(ts_schedule_date);
+        const tm = time.DateTime.toUnix(this_month);
 
-        if (s_ts >= t_ts) {
+        if (pod >= tm or ts >= tm) {
+            if (ts > pod) {
+                self.schedule_date = ts_schedule_date;
+            } else {
+                self.schedule_date = pod_schedule_date;
+            }
             self.is_delay = false;
         } else {
-            schedule_date = this_month;
+            self.schedule_date = this_month.addMonths(1);
             self.is_delay = true;
+
         }
+
+        // if (s_ts < t_ts) {
+        //     schedule_date = this_month;
+        //     self.is_delay = true;
+        // }
 
         // std.debug.print("second: {YYYY-MM-DD} {HH}:{mm}:{ss}\n\n", .{
         //     schedule_date,
@@ -150,7 +172,6 @@ pub const Costing = struct {
         //     schedule_date,
         // });
 
-        self.schedule_date = schedule_date;
     }
 
     fn calculateScheduleDate(

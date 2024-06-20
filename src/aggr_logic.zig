@@ -20,7 +20,7 @@ pub fn loopCostingList(
         var mitra_code_genesis: []const u8 = undefined;
         var stt_booked_date: []const u8 = undefined;
         var stt_pod_date: []const u8 = undefined;
-        var etl_date: []const u8 = undefined;
+        var ts_date: []const u8 = undefined;
 
         var j: usize = 0;
         while (j < c.length()) : (j += 1) {
@@ -31,7 +31,7 @@ pub fn loopCostingList(
                 2 => mitra_code_genesis = parsed,
                 3 => stt_booked_date = parsed,
                 4 => stt_pod_date = parsed,
-                5 => etl_date = parsed,
+                5 => ts_date = parsed,
                 else => unreachable,
             }
         }
@@ -41,7 +41,7 @@ pub fn loopCostingList(
             mitra_code_genesis,
             stt_booked_date,
             stt_pod_date,
-            etl_date,
+            ts_date,
             partner_dict,
             false,
             schedule_day,
@@ -130,7 +130,7 @@ pub fn loopCosting(
         var mitra_code_genesis: [stackBufferSize()]u8 = undefined;
         var stt_booked_date: [stackBufferSize()]u8 = undefined;
         var stt_pod_date: [stackBufferSize()]u8 = undefined;
-        var etl_date: [stackBufferSize()]u8 = undefined;
+        var ts_date: [stackBufferSize()]u8 = undefined;
 
         for (0..shape_y) |y| {
             const lower_offset_y = y * stride_y;
@@ -162,7 +162,7 @@ pub fn loopCosting(
                 2 => @memcpy(&mitra_code_genesis, sentinel),
                 3 => @memcpy(&stt_booked_date, sentinel),
                 4 => @memcpy(&stt_pod_date, sentinel),
-                5 => @memcpy(&etl_date, sentinel),
+                5 => @memcpy(&ts_date, sentinel),
                 else => unreachable,
             }
         }
@@ -173,7 +173,7 @@ pub fn loopCosting(
             &mitra_code_genesis,
             &stt_booked_date,
             &stt_pod_date,
-            &etl_date,
+            &ts_date,
             partner_dict,
             true,
             20,
