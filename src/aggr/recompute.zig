@@ -118,7 +118,7 @@ pub const RecomputeFields = struct {
 
         try optOrNull(writer, c, "origin");
         try optOrNull(writer, c, "destination");
-        try writer.writeAll("write_date=NOW() AT TIME ZONE 'Asia/Jakarta',");
+        try writer.writeAll("write_date=NOW(),");
         try optOrNull(writer, c, "product");
         try optOrNull(writer, c, "pickup_fee");
         try optOrNull(writer, c, "flight_cost");
