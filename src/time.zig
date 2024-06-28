@@ -9,15 +9,13 @@ const time = @This();
 
 pub const DateTime = struct {
     ms: u16,
-    seconds: u16,
-    minutes: u16,
-    hours: u16,
-    days: u16,
-    months: u16,
+    seconds: u8,
+    minutes: u8,
+    hours: u8,
+    days: u8,
+    months: u8,
     years: u16,
     timezone: TimeZone,
-    weekday: WeekDay,
-    era: Era,
 
     const Self = @This();
 
@@ -41,7 +39,7 @@ pub const DateTime = struct {
     }
 
     pub fn now() Self {
-        return initUnixMs(@as(u64, @intCast(std.time.milliTimestamp())));
+        return initUnixMs(@intCast(std.time.milliTimestamp()));
     }
 
     pub const epoch_unix = Self{
@@ -53,8 +51,6 @@ pub const DateTime = struct {
         .months = 0,
         .years = 1970,
         .timezone = .UTC,
-        .weekday = .Thu,
-        .era = .AD,
     };
 
     pub fn eql(self: Self, other: Self) bool {
@@ -72,28 +68,28 @@ pub const DateTime = struct {
     pub fn addMs(self: Self, count: u64) Self {
         if (count == 0) return self;
         var result = self;
-        result.ms += @as(u16, @intCast(count % 1000));
+        result.ms += @intCast(count % 1000);
         return result.addSecs(count / 1000);
     }
 
     pub fn addSecs(self: Self, count: u64) Self {
         if (count == 0) return self;
         var result = self;
-        result.seconds += @as(u16, @intCast(count % 60));
+        result.seconds += @intCast(count % 60);
         return result.addMins(count / 60);
     }
 
     pub fn addMins(self: Self, count: u64) Self {
         if (count == 0) return self;
         var result = self;
-        result.minutes += @as(u16, @intCast(count % 60));
+        result.minutes += @intCast(count % 60);
         return result.addHours(count / 60);
     }
 
     pub fn addHours(self: Self, count: u64) Self {
         if (count == 0) return self;
         var result = self;
-        result.hours += @as(u16, @intCast(count % 24));
+        result.hours += @intCast(count % 24);
         return result.addDays(count / 24);
     }
 
@@ -107,7 +103,6 @@ pub const DateTime = struct {
             if (input >= year_len) {
                 result.years += 1;
                 input -= year_len;
-                result.incrementWeekday(year_len);
                 continue;
             }
             break;
@@ -117,7 +112,6 @@ pub const DateTime = struct {
             if (input >= month_len) {
                 result.months += 1;
                 input -= month_len;
-                result.incrementWeekday(month_len);
 
                 if (result.months == 12) {
                     result.years += 1;
@@ -134,17 +128,25 @@ pub const DateTime = struct {
                 input -= left;
                 result.months += 1;
                 result.days = 0;
-                result.incrementWeekday(left);
             }
-            result.days += @as(u16, @intCast(input));
-            result.incrementWeekday(input);
+            result.days += @intCast(input);
 
+            if (result.days == result.daysThisMonth()) {
+                result.months += 1;
+                result.days = 0;
+            }
             if (result.months == 12) {
                 result.years += 1;
                 result.months = 0;
             }
         }
 
+        std.debug.assert(result.ms < 1000);
+        std.debug.assert(result.seconds < 60);
+        std.debug.assert(result.minutes < 60);
+        std.debug.assert(result.hours < 24);
+        std.debug.assert(result.days < result.daysThisMonth());
+        std.debug.assert(result.months < 12);
         return result;
     }
 
@@ -161,8 +163,11 @@ pub const DateTime = struct {
     }
 
     pub fn addYears(self: Self, count: u64) Self {
-        if (count == 0) return self;
-        return self.addMonths(count * 12);
+        var result = self;
+        for (0..count) |_| {
+            result = result.addDays(result.daysThisYear());
+        }
+        return result;
     }
 
     pub fn isLeapYear(self: Self) bool {
@@ -181,17 +186,10 @@ pub const DateTime = struct {
         return time.daysInMonth(self.years, month);
     }
 
-    fn incrementWeekday(self: *Self, count: u64) void {
-        var i = count % 7;
-        while (i > 0) : (i -= 1) {
-            self.weekday = self.weekday.next();
-        }
-    }
-
     pub fn dayOfThisYear(self: Self) u16 {
         var ret: u16 = 0;
         for (0..self.months) |item| {
-            ret += self.daysInMonth(@as(u16, @intCast(item)));
+            ret += self.daysInMonth(@intCast(item));
         }
         ret += self.days;
         return ret;
@@ -215,8 +213,8 @@ pub const DateTime = struct {
     fn daysSinceEpoch(self: Self) u64 {
         var res: u64 = 0;
         res += self.days;
-        for (0..self.years - epoch_unix.years) |i| res += time.daysInYear(@as(u16, @intCast(i)));
-        for (0..self.months) |i| res += self.daysInMonth(@as(u16, @intCast(i)));
+        for (0..self.years - epoch_unix.years) |i| res += time.daysInYear(@intCast(i));
+        for (0..self.months) |i| res += self.daysInMonth(@intCast(i));
         return res;
     }
 
@@ -258,13 +256,13 @@ pub const DateTime = struct {
                     .DDDo => try printOrdinal(writer, self.dayOfThisYear() + 1),
                     .DDDD => try writer.print("{:0>3}", .{self.dayOfThisYear() + 1}),
 
-                    .d => try writer.print("{}", .{@intFromEnum(self.weekday)}),
-                    .do => try printOrdinal(writer, @intFromEnum(self.weekday)),
-                    .dd => try writer.writeAll(@tagName(self.weekday)[0..2]),
-                    .ddd => try writer.writeAll(@tagName(self.weekday)),
-                    .dddd => try printLongName(writer, @intFromEnum(self.weekday), &[_]string{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }),
-                    .e => try writer.print("{}", .{@intFromEnum(self.weekday)}),
-                    .E => try writer.print("{}", .{@intFromEnum(self.weekday) + 1}),
+                    .d => try writer.print("{}", .{@intFromEnum(self.weekday())}),
+                    .do => try printOrdinal(writer, @intFromEnum(self.weekday())),
+                    .dd => try writer.writeAll(@tagName(self.weekday())[0..2]),
+                    .ddd => try writer.writeAll(@tagName(self.weekday())),
+                    .dddd => try printLongName(writer, @intFromEnum(self.weekday()), &[_]string{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }),
+                    .e => try writer.print("{}", .{@intFromEnum(self.weekday())}),
+                    .E => try writer.print("{}", .{@intFromEnum(self.weekday()) + 1}),
 
                     .w => try writer.print("{}", .{self.dayOfThisYear() / 7 + 1}),
                     .wo => try printOrdinal(writer, self.dayOfThisYear() / 7 + 1),
@@ -275,7 +273,7 @@ pub const DateTime = struct {
                     .YYY => try writer.print("{}", .{self.years}),
                     .YYYY => try writer.print("{:0>4}", .{self.years}),
 
-                    .N => try writer.writeAll(@tagName(self.era)),
+                    .N => try writer.writeAll(@tagName(self.era())),
                     .NN => try writer.writeAll("Anno Domini"),
 
                     .A => try printLongName(writer, self.hours / 12, &[_]string{ "AM", "PM" }),
@@ -304,17 +302,6 @@ pub const DateTime = struct {
 
                     .x => try writer.print("{}", .{self.toUnixMilli()}),
                     .X => try writer.print("{}", .{self.toUnix()}),
-
-                    .ISO => try writer.print("{:0>4}-{:0>2}:{:0>2} {:0>2}:{:0>2}:{:0>2}.{:0>3} {s}", .{
-                        self.years,
-                        self.months + 1,
-                        self.days + 1,
-                        self.hours,
-                        self.minutes,
-                        self.seconds,
-                        self.ms,
-                        @tagName(self.timezone),
-                    }),
                 }
                 next = null;
                 s = i;
@@ -328,6 +315,7 @@ pub const DateTime = struct {
                 '.',
                 'T',
                 'W',
+                '/',
                 => {
                     try writer.writeAll(&.{c});
                     s = i + 1;
@@ -347,7 +335,6 @@ pub const DateTime = struct {
     }
 
     const FormatSeq = enum {
-        ISO, // YYYY-MM-DD HH:mm:ss.S z
         M, // 1 2 ... 11 12
         Mo, // 1st 2nd ... 11th 12th
         MM, // 01 02 ... 11 12
@@ -404,19 +391,33 @@ pub const DateTime = struct {
             .ms = self.toUnixMilli() - other_in_the_past.toUnixMilli(),
         };
     }
+
+    pub fn era(self: Self) Era {
+        if (self.years >= 0) return .AD;
+        @compileError("TODO");
+    }
+
+    pub fn weekday(self: Self) WeekDay {
+        var i = self.daysSinceEpoch() % 7;
+        var result = WeekDay.Thu; // weekday of epoch_unix
+        while (i > 0) : (i -= 1) {
+            result = result.next();
+        }
+        return result;
+    }
 };
 
 pub const format = struct {
-    pub const LT = "";
-    pub const LTS = "";
-    pub const L = "";
-    pub const l = "";
-    pub const LL = "";
-    pub const ll = "";
-    pub const LLL = "";
-    pub const lll = "";
-    pub const LLLL = "";
-    pub const llll = "";
+    pub const LT = "h:mm A";
+    pub const LTS = "h:mm:ss A";
+    pub const L = "MM/DD/YYYY";
+    pub const l = "M/D/YYY";
+    pub const LL = "MMMM D, YYYY";
+    pub const ll = "MMM D, YYY";
+    pub const LLL = LL ++ " " ++ LT;
+    pub const lll = ll ++ " " ++ LT;
+    pub const LLLL = "dddd, " ++ LLL;
+    pub const llll = "ddd, " ++ lll;
 };
 
 pub const TimeZone = enum {
@@ -483,8 +484,8 @@ fn printLongName(writer: anytype, index: u16, names: []const string) !void {
     try writer.writeAll(names[index]);
 }
 
-fn wrap(val: u16, at: u16) !u16 {
-    var tmp = val % at;
+fn wrap(val: u16, at: u16) u16 {
+    const tmp = val % at;
     return if (tmp == 0) at else tmp;
 }
 
@@ -492,6 +493,40 @@ pub const Duration = struct {
     ms: u64,
 };
 
-pub fn now() DateTime {
-    return DateTime.now();
+pub fn parseOdooDate(input: []const u8) !time.DateTime {
+    var date_time_it = std.mem.splitScalar(u8, input, ' ');
+    var is_time: bool = false;
+
+    var year: u16 = undefined;
+    var month: u16 = undefined;
+    var day: u16 = undefined;
+    var hr: u16 = undefined;
+    var min: u16 = undefined;
+    var sec: u16 = undefined;
+
+    // this can't fail, the format will always be like
+    // input "2024-02-03 01:11:59"
+    while (date_time_it.next()) |date_time| {
+        if (!is_time) {
+            var date_s = std.mem.splitScalar(u8, date_time, '-');
+            year = try std.fmt.parseInt(u16, date_s.next().?, 10);
+            month = try std.fmt.parseInt(u16, date_s.next().?, 10);
+            day = try std.fmt.parseInt(u16, date_s.next().?, 10);
+            is_time = true;
+        } else {
+            var time_s = std.mem.splitScalar(u8, date_time, ':');
+            hr = try std.fmt.parseInt(u16, time_s.next().?, 10);
+            min = try std.fmt.parseInt(u16, time_s.next().?, 10);
+            sec = try std.fmt.parseInt(u16, time_s.next().?, 10);
+        }
+    }
+
+    return time.DateTime.init(
+        year,
+        month - 1,
+        day - 1,
+        hr,
+        min,
+        sec,
+    );
 }
