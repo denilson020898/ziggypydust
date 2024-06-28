@@ -38,73 +38,65 @@ const LockProforma = struct {
         sel_proforma: *const SelProforma,
         stt_schedule: *const SttSchedule,
     ) !Self {
-        _ = stt_schedule;
         var schedule_date: time.DateTime = undefined;
 
         const now = time.DateTime.now().addHours(7); // Asia/Jakarta
         const now_ts = time.DateTime.toUnix(now);
-        _ = now_ts;
 
         if (std.mem.eql(u8, schedule_so, "monthly")) {
             unreachable;
         } else if (std.mem.eql(u8, schedule_so, "biweekly")) {
             unreachable;
         } else if (std.mem.eql(u8, schedule_so, "weekly")) {
-            unreachable;
-            // var assumed_pod_date = sel_proforma.modified_at.addDays(1);
-            // // while (assumed_pod_date.weekday != time.WeekDay.Mon) : (assumed_pod_date = assumed_pod_date.addDays(1)) {}
-            // // same logic
-            // var target_day: time.WeekDay = undefined;
-            // if (stt_schedule.schedule_weekly_day == 0) {
-            //     target_day = time.WeekDay.Mon;
-            // } else if (stt_schedule.schedule_weekly_day == 1) {
-            //     target_day = time.WeekDay.Tue;
-            // } else if (stt_schedule.schedule_weekly_day == 2) {
-            //     target_day = time.WeekDay.Wed;
-            // } else if (stt_schedule.schedule_weekly_day == 3) {
-            //     target_day = time.WeekDay.Thu;
-            // } else if (stt_schedule.schedule_weekly_day == 4) {
-            //     target_day = time.WeekDay.Fri;
-            // } else if (stt_schedule.schedule_weekly_day == 5) {
-            //     target_day = time.WeekDay.Sat;
-            // } else if (stt_schedule.schedule_weekly_day == 6) {
-            //     target_day = time.WeekDay.Sun;
-            // }
-            //
-            // while (assumed_pod_date.weekday != target_day) {
-            //     assumed_pod_date = assumed_pod_date.addDays(1);
-            //     std.debug.print("increment\n", .{});
-            // }
-            // assumed_pod_date.hours = 0;
-            // assumed_pod_date.minutes = 0;
-            // assumed_pod_date.seconds = 1;
-            // schedule_date = assumed_pod_date;
+            var assumed_pod_date = sel_proforma.modified_at.addDays(1);
+            // while (assumed_pod_date.weekday != time.WeekDay.Mon) : (assumed_pod_date = assumed_pod_date.addDays(1)) {}
+
+            var target_day: time.WeekDay = undefined;
+            if (stt_schedule.schedule_weekly_day == 0) {
+                target_day = time.WeekDay.Mon;
+            } else if (stt_schedule.schedule_weekly_day == 1) {
+                target_day = time.WeekDay.Tue;
+            } else if (stt_schedule.schedule_weekly_day == 2) {
+                target_day = time.WeekDay.Wed;
+            } else if (stt_schedule.schedule_weekly_day == 3) {
+                target_day = time.WeekDay.Thu;
+            } else if (stt_schedule.schedule_weekly_day == 4) {
+                target_day = time.WeekDay.Fri;
+            } else if (stt_schedule.schedule_weekly_day == 5) {
+                target_day = time.WeekDay.Sat;
+            } else if (stt_schedule.schedule_weekly_day == 6) {
+                target_day = time.WeekDay.Sun;
+            }
+
+            while (assumed_pod_date.weekday() != target_day) {
+                assumed_pod_date = assumed_pod_date.addDays(1);
+            }
+            assumed_pod_date.hours = 0;
+            assumed_pod_date.minutes = 0;
+            assumed_pod_date.seconds = 1;
+            schedule_date = assumed_pod_date;
         } else if (std.mem.eql(u8, schedule_so, "daily")) {
-            var assumed_pod_date = sel_proforma.modified_at;
-            // schedule_date = time.DateTime.init(
-            //     assumed_pod_date.years,
-            //     assumed_pod_date.months,
-            //     assumed_pod_date.days,
-            //     0,
-            //     0,
-            //     1,
-            // );
-            schedule_date = assumed_pod_date.addDays(1);
-            // const schedule_ts = time.DateTime.toUnix(schedule_date);
-            //
-            // if (schedule_ts < now_ts) {
-            //     const start_of_tmrw = time.DateTime.init(
-            //         schedule_date.years,
-            //         schedule_date.months,
-            //         schedule_date.days,
-            //         0,
-            //         0,
-            //         0,
-            //     );
-            //     // this "time" library
-            //     // represents the months and days with 1 less value
-            //     schedule_date = start_of_tmrw.addDays(1).addSecs(1);
-            // }
+            var assumed_pod_date = sel_proforma.modified_at.addDays(1);
+            schedule_date = time.DateTime.init(
+                assumed_pod_date.years,
+                assumed_pod_date.months,
+                assumed_pod_date.days,
+                0,
+                0,
+                1,
+            );
+            const schedule_ts = time.DateTime.toUnix(schedule_date);
+            if (schedule_ts < now_ts) {
+                const start_of_tmrw = time.DateTime.init(
+                    now.years,
+                    now.months,
+                    now.days,
+                    0,
+                    0,
+                    1,
+                );
+                schedule_date = start_of_tmrw.addDays(1);
+            }
         } else {
             unreachable;
         }
@@ -206,6 +198,7 @@ pub const Proforma = struct {
             self.lock_proforma.schedule_date,
             self.lock_proforma.schedule_date,
         });
+
         // // _ = try writer.print("odoo_partner_id='{s}',", .{self.odoo_partner_id});
         // // _ = try writer.print("odoo_partner_user_id='{s}',", .{self.odoo_partner_user_id});
         // _ = try writer.print("platform_type='{s}',", .{self.platform_type});

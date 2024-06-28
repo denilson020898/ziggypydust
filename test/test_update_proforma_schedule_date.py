@@ -268,7 +268,7 @@ rp_dict = {
     "20746": [73113, "daily", "20746", None],
     "20896": [72155, "daily", "20896", None],
     "20943": [72156, "daily", "20943", None],
-    "2095": [57416, "daily", "TOKOPEDIA", 9999],
+    "2095": [57416, "weekly", "TOKOPEDIA", 9999],
     "2104": [30219, "daily", "TANGARA MITRAKOM, PT (B2B)", None],
     "21057": [72157, "daily", "21057", None],
     "2109": [59342, "monthly", "HONDA PROSPECT MOTOR, PT (B2B)", None],
@@ -870,7 +870,7 @@ res = [
         "HAHA001_88LP1718438079817",
         "20240628T023814_HAHA001_88LP1718438079817",
         "2024-06-15 07:54:39",
-        "2024-06-26 19:28:54",
+        "2024-07-26 19:28:54",
         "2095",
         "E",
     ),
@@ -878,7 +878,7 @@ res = [
         "HAHA001_88LP1718008770767",
         "20240628T023814_HAHA001_88LP1718008770767",
         "2024-06-10 08:39:29",
-        "2024-06-30 19:28:54",
+        "2024-06-10 19:28:54",
         "2095",
         "E",
     ),
@@ -886,7 +886,7 @@ res = [
 
 SCHEDULE_DAILY_HOUR = 2
 SCHEDULE_DAILY_MINUTE = 30  # 02:30 AM
-SCHEDULE_WEEKLY_DAY = 0  # 0 -> Monday, 6 -> Sunday
+SCHEDULE_WEEKLY_DAY = 2  # 0 -> Monday, 6 -> Sunday
 SCHEDULE_BIWEEKLY_FIRST_DATE = 5  # 5th of the month
 SCHEDULE_BIWEEKLY_SECOND_DATE = 20  # 20th of the month
 SCHEDULE_MONTHLY = 5  # 5th of the next month
