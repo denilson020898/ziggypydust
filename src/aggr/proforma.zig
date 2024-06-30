@@ -226,17 +226,6 @@ pub const Proforma = struct {
         _ = fmt;
         _ = options;
 
-        // UPDATE stt_selector SET
-        //     mother_account = '{mother_account}',
-        //     schedule_so = '{schedule_so}',
-        //     odoo_partner_id = {res_partner_id},
-        //     odoo_partner_user_id = {partner_user_id},
-        //     platform_type = '{platform_type}',
-        //     proforma_stt_ts = '{stt_ts}',
-        //     stt_pod_date = '{modified_at}',
-        //     proforma_schedule_date = '{schedule_date}'
-        // WHERE stt_id = '{stt_sel}';
-
         try writer.writeAll("UPDATE stt_selector SET ");
         _ = try writer.print("mother_account='{s}',", .{self.sel_proforma.mother_account});
         _ = try writer.print("schedule_so='{s}',", .{self.lock_proforma.schedule_so});
@@ -339,12 +328,9 @@ pub const RecomputeSttDetail = struct {
         try optOrNull(writer, s, "previous_cancel");
         try optOrNull(writer, s, "percentage");
         try optOrNull(writer, s, "forward_rate_origin_per_kg");
-        if (s.cod_fee) |cod_fee| {
-            _ = try writer.print("cod_fee={d:.2}", .{cod_fee});
-        } else {
-            _ = try writer.print("cod_fee=null", .{});
-        }
-        _ = try writer.print(" WHERE name='{s}';", .{s.stt_id});
+        try optOrNull(writer, s, "cod_fee");
+        try writer.writeAll("write_date=NOW() ");
+        _ = try writer.print("WHERE name='{s}';", .{s.stt_id});
     }
 
     fn formatAirflow(s: *const Self, writer: anytype) !void {
