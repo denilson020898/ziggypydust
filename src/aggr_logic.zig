@@ -4,6 +4,7 @@ const py = @import("pydust");
 const time = @import("time.zig");
 const costing = @import("aggr/costing.zig");
 const recompute = @import("aggr/recompute.zig");
+const proforma = @import("aggr/proforma.zig");
 
 pub fn loopCostingList(
     out: *std.ArrayList(u8),
@@ -50,6 +51,37 @@ pub fn loopCostingList(
     }
 }
 
+pub fn loopSttList(
+    out: *std.ArrayList(u8),
+    list: *const py.PyList,
+    partner_dict: *const py.PyDict,
+    stt_schedule: *const proforma.SttSchedule,
+) !void {
+    var i: isize = 0;
+    while (i < list.length()) : (i += 1) {
+        const c = try list.getItem(py.PyTuple, i);
+
+        var sel_proforma = proforma.SelProforma{};
+        inline for (std.meta.fields(@TypeOf(sel_proforma)), 0..) |field_info, idx| {
+            const parsed = if (field_info.type == time.DateTime) parsed: {
+                const result_str = try c.getItem([]const u8, idx);
+                const result = try time.parseOdooDate(result_str);
+                break :parsed result;
+            } else parsed: {
+                const result = try c.getItem(field_info.type, idx);
+                break :parsed result;
+            };
+            @field(sel_proforma, field_info.name) = parsed;
+        }
+        const locked = try proforma.Proforma.lock(
+            &sel_proforma,
+            partner_dict,
+            stt_schedule,
+        );
+        try out.writer().print("{any}\n", .{locked});
+    }
+}
+
 pub fn recomputeQuery(
     out_airflow: *std.ArrayList(u8),
     out_odoo: *std.ArrayList(u8),
@@ -67,14 +99,10 @@ pub fn recomputeQuery(
                 break :parsed result;
             } else parsed: {
                 const result = try c.getItem(field_info.type, idx);
-                // std.debug.print("##\t\t{} {s} {any}\n", .{ idx, field_info.name, result });
                 break :parsed result;
             };
-            // std.debug.print("idx {} -> {s} {any} {any}\n", .{ idx, field_info.name, field_info.type, parsed });
-
             @field(recom, field_info.name) = parsed;
         }
-        // std.debug.print("{}\n", .{recom});
         try out_airflow.writer().print("{airflow}\n", .{recom});
         try out_odoo.writer().print("{odoo}\n", .{recom});
     }

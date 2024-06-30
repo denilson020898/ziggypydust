@@ -109,14 +109,14 @@ pub const Costing = struct {
         self: *Self,
         schedule_day: u64,
     ) !void {
-        const stt_pod_date = try parseOdooDate(self.lock_costing.stt_pod_date);
+        const stt_pod_date = try time.parseOdooDate(self.lock_costing.stt_pod_date);
         var pod_schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
 
-        const ts_date = try parseOdooDate(self.lock_costing.ts_date);
+        const ts_date = try time.parseOdooDate(self.lock_costing.ts_date);
         var ts_schedule_date = calculateScheduleDate(&ts_date, schedule_day);
 
-        var this_month = time.now();
-        this_month.days = @as(u16, @intCast(schedule_day - 1));
+        var this_month = time.DateTime.now();
+        this_month.days = @as(u8, @intCast(schedule_day - 1));
         this_month.hours = 0;
         this_month.minutes = 0;
         this_month.seconds = 1;
@@ -198,44 +198,6 @@ pub const Costing = struct {
 
         result = result.addMonths(1).addDays(target_date).addSecs(1);
         return result;
-    }
-
-    fn parseOdooDate(input: []const u8) !time.DateTime {
-        var date_time_it = std.mem.splitScalar(u8, input, ' ');
-        var is_time: bool = false;
-
-        var year: u16 = undefined;
-        var month: u16 = undefined;
-        var day: u16 = undefined;
-        var hr: u16 = undefined;
-        var min: u16 = undefined;
-        var sec: u16 = undefined;
-
-        // this can't fail, the format will always be like
-        // input "2024-02-03 01:11:59"
-        while (date_time_it.next()) |date_time| {
-            if (!is_time) {
-                var date_s = std.mem.splitScalar(u8, date_time, '-');
-                year = try std.fmt.parseInt(u16, date_s.next().?, 10);
-                month = try std.fmt.parseInt(u16, date_s.next().?, 10);
-                day = try std.fmt.parseInt(u16, date_s.next().?, 10);
-                is_time = true;
-            } else {
-                var time_s = std.mem.splitScalar(u8, date_time, ':');
-                hr = try std.fmt.parseInt(u16, time_s.next().?, 10);
-                min = try std.fmt.parseInt(u16, time_s.next().?, 10);
-                sec = try std.fmt.parseInt(u16, time_s.next().?, 10);
-            }
-        }
-
-        return time.DateTime.init(
-            year,
-            month - 1,
-            day - 1,
-            hr,
-            min,
-            sec,
-        );
     }
 
     pub fn format(
