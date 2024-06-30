@@ -1,3 +1,15 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//         http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 const std = @import("std");
 const py = @import("pydust");
 
@@ -79,6 +91,33 @@ pub fn loopSttList(
             stt_schedule,
         );
         try out.writer().print("{any}\n", .{locked});
+    }
+}
+
+pub fn recomputeSoQuery(
+    out_airflow: *std.ArrayList(u8),
+    out_odoo: *std.ArrayList(u8),
+    list: *const py.PyList,
+) !void {
+    var i: isize = 0;
+    while (i < list.length()) : (i += 1) {
+        const c = try list.getItem(py.PyTuple, i);
+
+        var recom = proforma.RecomputeSttDetail{};
+        inline for (std.meta.fields(@TypeOf(recom)), 0..) |field_info, idx| {
+            const parsed = if (@typeInfo(field_info.type) == .Optional) parsed: {
+                const pyobj = try c.getItem(py.PyObject, idx);
+                const result = if (py.is_none(pyobj)) null else try c.getItem(field_info.type, idx);
+                break :parsed result;
+            } else parsed: {
+                const result = try c.getItem(field_info.type, idx);
+                break :parsed result;
+            };
+            @field(recom, field_info.name) = parsed;
+        }
+
+        try out_airflow.writer().print("{airflow}\n", .{recom});
+        try out_odoo.writer().print("{odoo}\n", .{recom});
     }
 }
 

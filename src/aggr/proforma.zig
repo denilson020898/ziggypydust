@@ -264,3 +264,136 @@ pub const Proforma = struct {
         _ = try writer.print(" WHERE stt_id='{s}';", .{self.sel_proforma.stt_id});
     }
 };
+
+pub const RecomputeSttDetail = struct {
+    stt_id: []const u8 = undefined,
+    stt_date: []const u8 = undefined,
+    stt_no_ref_external: ?[]const u8 = undefined,
+    mother_account: ?[]const u8 = undefined,
+    mother_account_name: ?[]const u8 = undefined,
+    client_name: ?[]const u8 = undefined,
+    stt_origin_city_id: ?[]const u8 = undefined,
+    stt_destination_city_id: ?[]const u8 = undefined,
+    stt_destination_district_name: ?[]const u8 = undefined,
+    stt_product_type: ?[]const u8 = undefined,
+    stt_total_piece: ?u32 = undefined,
+    stt_commodity_name: ?[]const u8 = undefined,
+    stt_volume_weight: ?f32 = undefined,
+    stt_gross_weight: ?f32 = undefined,
+    stt_chargeable_weight: ?f32 = undefined,
+    publish_rate_per_kg: ?f32 = undefined,
+    forward_rate_per_kg: ?f32 = undefined,
+    surcharge_rate: ?f32 = undefined,
+    stt_woodpacking_rate: ?f32 = undefined,
+    total_amount_rate: ?f32 = undefined,
+    total_vat: ?f32 = undefined,
+    stt_insurance_rate: ?f32 = undefined,
+    modified_at: ?[]const u8 = undefined,
+    platform_type: ?[]const u8 = undefined,
+    previous_cancel: ?[]const u8 = undefined,
+    percentage: ?f32 = undefined,
+    forward_rate_origin_per_kg: ?f32 = undefined,
+    cod_fee: ?f32 = undefined,
+
+    const Self = @This();
+
+    pub fn format(
+        self: Self,
+        comptime fmt: []const u8,
+        options: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        _ = options;
+        if (std.mem.eql(u8, fmt, "odoo")) {
+            try self.formatOdoo(writer);
+        } else if (std.mem.eql(u8, fmt, "airflow")) {
+            try self.formatAirflow(writer);
+        }
+    }
+
+    fn formatOdoo(s: *const Self, writer: anytype) !void {
+        try writer.writeAll("UPDATE stt_detail_jurnal_piutang SET ");
+        _ = try writer.print("stt_date='{s}',", .{s.stt_date});
+        try optOrNull(writer, s, "stt_no_ref_external");
+        try optOrNull(writer, s, "mother_account");
+        try optOrNull(writer, s, "mother_account_name");
+        try optOrNull(writer, s, "client_name");
+        try optOrNull(writer, s, "stt_origin_city_id");
+        try optOrNull(writer, s, "stt_destination_city_id");
+        try optOrNull(writer, s, "stt_destination_district_name");
+        try optOrNull(writer, s, "stt_product_type");
+        try optOrNull(writer, s, "stt_total_piece");
+        try optOrNull(writer, s, "stt_commodity_name");
+        try optOrNull(writer, s, "stt_volume_weight");
+        try optOrNull(writer, s, "stt_gross_weight");
+        try optOrNull(writer, s, "stt_chargeable_weight");
+        try optOrNull(writer, s, "publish_rate_per_kg");
+        try optOrNull(writer, s, "forward_rate_per_kg");
+        try optOrNull(writer, s, "surcharge_rate");
+        try optOrNull(writer, s, "stt_woodpacking_rate");
+        try optOrNull(writer, s, "total_amount_rate");
+        try optOrNull(writer, s, "total_vat");
+        try optOrNull(writer, s, "stt_insurance_rate");
+        try optOrNull(writer, s, "modified_at");
+        try optOrNull(writer, s, "platform_type");
+        try optOrNull(writer, s, "previous_cancel");
+        try optOrNull(writer, s, "percentage");
+        try optOrNull(writer, s, "forward_rate_origin_per_kg");
+        if (s.cod_fee) |cod_fee| {
+            _ = try writer.print("cod_fee={d:.2}", .{cod_fee});
+        } else {
+            _ = try writer.print("cod_fee=null", .{});
+        }
+        _ = try writer.print(" WHERE name='{s}';", .{s.stt_id});
+    }
+
+    fn formatAirflow(s: *const Self, writer: anytype) !void {
+        try writer.writeAll("UPDATE stt_selector x ");
+        try writer.writeAll("SET proforma_stt_ts = y.latest_stt_ts ");
+        try writer.writeAll("FROM (SELECT stt_id,latest_stt_ts FROM stt_selector ");
+        _ = try writer.print("where stt_id='{s}' FOR UPDATE) y ", .{s.stt_id});
+        try writer.writeAll("WHERE x.stt_id=y.stt_id;");
+    }
+
+    fn optOrNull(writer: anytype, input: *const Self, comptime field_name: []const u8) !void {
+        const field_value = @field(input, field_name);
+        switch (@TypeOf(field_value)) {
+            ?[]const u8 => {
+                if (field_value) |content| {
+
+                    // NOTE: replace single quote
+                    // 'POS LION PARCEL KH. AHMAD SYA'YANI'
+                    // to
+                    // 'POS LION PARCEL KH. AHMAD SYA''YANI'
+                    //
+                    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+                    defer _ = gpa.deinit();
+                    const allocator = gpa.allocator();
+                    const size = std.mem.replacementSize(u8, content, "'", "''");
+                    var output = try allocator.alloc(u8, size);
+                    defer allocator.free(output);
+                    _ = std.mem.replace(u8, content, "'", "''", output);
+
+                    _ = try writer.print("{s}='{s}',", .{ field_name, output });
+                } else {
+                    _ = try writer.print("{s}=null,", .{field_name});
+                }
+            },
+            ?f32 => {
+                if (field_value) |content| {
+                    _ = try writer.print("{s}={d:.2},", .{ field_name, content });
+                } else {
+                    _ = try writer.print("{s}=null,", .{field_name});
+                }
+            },
+            ?u32 => {
+                if (field_value) |content| {
+                    _ = try writer.print("{s}={d},", .{ field_name, content });
+                } else {
+                    _ = try writer.print("{s}=null,", .{field_name});
+                }
+            },
+            else => unreachable,
+        }
+    }
+};

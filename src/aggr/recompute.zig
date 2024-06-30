@@ -57,7 +57,7 @@ pub const RecomputeFields = struct {
 
     const Self = @This();
 
-    fn optOrNull(writer: anytype, input: *const RecomputeFields, comptime field_name: []const u8) !void {
+    fn optOrNull(writer: anytype, input: *const Self, comptime field_name: []const u8) !void {
         const field_value = @field(input, field_name);
         switch (@TypeOf(field_value)) {
             ?[]const u8 => {
