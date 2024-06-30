@@ -790,8 +790,8 @@ rp_dict = {
     "24457": [72251, "daily", "24457", None],
     "29517": [72460, "daily", "29517", None],
     "2095": [57416, "monthly", "TOKOPEDIA", 9999],
-    "2095w": [57416, "weekly", "TOKOPEDIA", 9999],
-    "2095bw": [57416, "biweekly", "TOKOPEDIA", 9999],
+    "2095w": [57416, "weekly", "TOKOPEDIA", 9998],
+    "2095bw": [57416, "biweekly", "TOKOPEDIA", 9997],
 }
 
 res = [

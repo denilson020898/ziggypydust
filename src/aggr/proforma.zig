@@ -238,33 +238,29 @@ pub const Proforma = struct {
         // WHERE stt_id = '{stt_sel}';
 
         try writer.writeAll("UPDATE stt_selector SET ");
-        _ = try writer.print("mother_account='{s}',", .{self.sel_proforma.stt_id});
-        _ = try writer.print("stt_date='{YYYY-MM-DD} {HH}:{mm}:{ss}',", .{
-            self.sel_proforma.stt_date,
-            self.sel_proforma.stt_date,
-            self.sel_proforma.stt_date,
-            self.sel_proforma.stt_date,
-        });
-        _ = try writer.print("modified_at='{YYYY-MM-DD} {HH}:{mm}:{ss}',", .{
-            self.sel_proforma.modified_at,
-            self.sel_proforma.modified_at,
-            self.sel_proforma.modified_at,
-            self.sel_proforma.modified_at,
-        });
+        _ = try writer.print("mother_account='{s}',", .{self.sel_proforma.mother_account});
         _ = try writer.print("schedule_so='{s}',", .{self.lock_proforma.schedule_so});
-        _ = try writer.print("proforma_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}',", .{
+        _ = try writer.print("odoo_partner_id={d},", .{self.lock_proforma.odoo_partner_id});
+
+        if (self.lock_proforma.odoo_partner_user_id) |partner_user_id| {
+            _ = try writer.print("odoo_partner_user_id={d},", .{partner_user_id});
+        } else {
+            _ = try writer.print("odoo_partner_user_id=null,", .{});
+        }
+        _ = try writer.print("platform_type='{s}',", .{self.sel_proforma.platform_type});
+        _ = try writer.print("proforma_stt_ts='{s}',", .{self.sel_proforma.latest_stt_ts});
+        _ = try writer.print("stt_pod_date='{YYYY-MM-DD} {HH}:{mm}:{ss}',", .{
+            self.sel_proforma.modified_at,
+            self.sel_proforma.modified_at,
+            self.sel_proforma.modified_at,
+            self.sel_proforma.modified_at,
+        });
+        _ = try writer.print("proforma_schedule_date='{YYYY-MM-DD} {HH}:{mm}:{ss}'", .{
             self.lock_proforma.schedule_date,
             self.lock_proforma.schedule_date,
             self.lock_proforma.schedule_date,
             self.lock_proforma.schedule_date,
         });
-
-        // // _ = try writer.print("odoo_partner_id='{s}',", .{self.odoo_partner_id});
-        // // _ = try writer.print("odoo_partner_user_id='{s}',", .{self.odoo_partner_user_id});
-        // _ = try writer.print("platform_type='{s}',", .{self.platform_type});
-        // _ = try writer.print("proforma_stt_ts='{s}',", .{self.latest_stt_ts});
-        // // _ = try writer.print("stt_pod_date='{s}',", .{self.stt_pod_date});
-        // // _ = try writer.print("proforma_schedule_date='{s}' ", .{self.proforma_schedule_date});
-        // _ = try writer.print("WHERE stt_id = '{s}';", .{self.stt_id});
+        _ = try writer.print(" WHERE stt_id='{s}';", .{self.sel_proforma.stt_id});
     }
 };
