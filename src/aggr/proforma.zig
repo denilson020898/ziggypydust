@@ -341,11 +341,9 @@ pub const RecomputeStt = struct {
     }
 
     fn formatAirflow(s: *const Self, writer: anytype) !void {
-        try writer.writeAll("UPDATE stt_selector x ");
-        _ = try writer.print("SET {s} = y.latest_stt_ts ", .{s.stt_ts_col});
-        try writer.writeAll("FROM (SELECT stt_id,latest_stt_ts FROM stt_selector ");
-        _ = try writer.print("where stt_id='{s}' FOR UPDATE) y ", .{s.stt_detail.stt_id});
-        try writer.writeAll("WHERE x.stt_id=y.stt_id;");
+        try writer.writeAll("UPDATE stt_selector ");
+        _ = try writer.print("SET {s}=latest_stt_ts ", .{s.stt_ts_col});
+        _ = try writer.print("WHERE stt_id='{s}';", .{s.stt_detail.stt_id});
     }
 
     fn optOrNull(writer: anytype, input: *const RecomputeSttDetail, comptime field_name: []const u8) !void {
