@@ -94,17 +94,19 @@ pub fn loopSttList(
     }
 }
 
-pub fn recomputeSoQuery(
+pub fn recomputeSttQuery(
     out_airflow: *std.ArrayList(u8),
     out_odoo: *std.ArrayList(u8),
     list: *const py.PyList,
+    stt_det_type: []const u8,
+    stt_ts_col: []const u8,
 ) !void {
     var i: isize = 0;
     while (i < list.length()) : (i += 1) {
         const c = try list.getItem(py.PyTuple, i);
 
-        var recom = proforma.RecomputeSttDetail{};
-        inline for (std.meta.fields(@TypeOf(recom)), 0..) |field_info, idx| {
+        var stt_detail = proforma.RecomputeSttDetail{};
+        inline for (std.meta.fields(@TypeOf(stt_detail)), 0..) |field_info, idx| {
             const parsed = if (@typeInfo(field_info.type) == .Optional) parsed: {
                 const pyobj = try c.getItem(py.PyObject, idx);
                 const result = if (py.is_none(pyobj)) null else try c.getItem(field_info.type, idx);
@@ -113,11 +115,17 @@ pub fn recomputeSoQuery(
                 const result = try c.getItem(field_info.type, idx);
                 break :parsed result;
             };
-            @field(recom, field_info.name) = parsed;
+            @field(stt_detail, field_info.name) = parsed;
         }
 
-        try out_airflow.writer().print("{airflow}\n", .{recom});
-        try out_odoo.writer().print("{odoo}\n", .{recom});
+        const recompute_stt = proforma.RecomputeStt{
+            .stt_detail = &stt_detail,
+            .stt_type = stt_det_type,
+            .stt_ts_col = stt_ts_col,
+        };
+
+        try out_airflow.writer().print("{airflow}\n", .{recompute_stt});
+        try out_odoo.writer().print("{odoo}\n", .{recompute_stt});
     }
 }
 

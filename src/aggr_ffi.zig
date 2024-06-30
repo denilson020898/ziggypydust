@@ -64,7 +64,9 @@ pub fn update_proforma_schedule_list(args: struct {
     return py_str;
 }
 
-pub fn generate_recompute_so_queries(args: struct {
+pub fn generate_recompute_stt_det_queries(args: struct {
+    stt_type: py.PyString,
+    stt_col: py.PyString,
     list: py.PyList,
 }) !py.PyList {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -77,10 +79,15 @@ pub fn generate_recompute_so_queries(args: struct {
     var out_odoo = std.ArrayList(u8).init(allocator);
     defer out_odoo.deinit();
 
-    try logic.recomputeSoQuery(
+    const stt_det = try args.stt_type.asSlice();
+    const stt_col = try args.stt_col.asSlice();
+
+    try logic.recomputeSttQuery(
         &out_airflow,
         &out_odoo,
         &args.list,
+        stt_det,
+        stt_col,
     );
 
     const py_str_airflow = try py.PyString.create(out_airflow.items);

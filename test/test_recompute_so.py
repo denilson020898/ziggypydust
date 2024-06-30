@@ -1781,7 +1781,9 @@ latest_si_vals = [
 
 if latest_si_vals:
     start_time = time.perf_counter()
-    airflow_query, odoo_query = _lib.generate_recompute_so_queries(
+    airflow_query, odoo_query = _lib.generate_recompute_stt_det_queries(
+        "stt_detail_write_off",
+        "write_off_stt_ts",
         latest_si_vals[:10],
     )
     end_time = time.perf_counter()

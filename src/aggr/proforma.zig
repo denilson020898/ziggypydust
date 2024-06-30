@@ -283,6 +283,13 @@ pub const RecomputeSttDetail = struct {
     percentage: ?f32 = undefined,
     forward_rate_origin_per_kg: ?f32 = undefined,
     cod_fee: ?f32 = undefined,
+};
+
+pub const RecomputeStt = struct {
+    stt_detail: *const RecomputeSttDetail,
+
+    stt_type: []const u8,
+    stt_ts_col: []const u8,
 
     const Self = @This();
 
@@ -301,47 +308,47 @@ pub const RecomputeSttDetail = struct {
     }
 
     fn formatOdoo(s: *const Self, writer: anytype) !void {
-        try writer.writeAll("UPDATE stt_detail_jurnal_piutang SET ");
-        _ = try writer.print("stt_date='{s}',", .{s.stt_date});
-        try optOrNull(writer, s, "stt_no_ref_external");
-        try optOrNull(writer, s, "mother_account");
-        try optOrNull(writer, s, "mother_account_name");
-        try optOrNull(writer, s, "client_name");
-        try optOrNull(writer, s, "stt_origin_city_id");
-        try optOrNull(writer, s, "stt_destination_city_id");
-        try optOrNull(writer, s, "stt_destination_district_name");
-        try optOrNull(writer, s, "stt_product_type");
-        try optOrNull(writer, s, "stt_total_piece");
-        try optOrNull(writer, s, "stt_commodity_name");
-        try optOrNull(writer, s, "stt_volume_weight");
-        try optOrNull(writer, s, "stt_gross_weight");
-        try optOrNull(writer, s, "stt_chargeable_weight");
-        try optOrNull(writer, s, "publish_rate_per_kg");
-        try optOrNull(writer, s, "forward_rate_per_kg");
-        try optOrNull(writer, s, "surcharge_rate");
-        try optOrNull(writer, s, "stt_woodpacking_rate");
-        try optOrNull(writer, s, "total_amount_rate");
-        try optOrNull(writer, s, "total_vat");
-        try optOrNull(writer, s, "stt_insurance_rate");
-        try optOrNull(writer, s, "modified_at");
-        try optOrNull(writer, s, "platform_type");
-        try optOrNull(writer, s, "previous_cancel");
-        try optOrNull(writer, s, "percentage");
-        try optOrNull(writer, s, "forward_rate_origin_per_kg");
-        try optOrNull(writer, s, "cod_fee");
+        _ = try writer.print("UPDATE {s} SET ", .{s.stt_type});
+        _ = try writer.print("stt_date='{s}',", .{s.stt_detail.stt_date});
+        try optOrNull(writer, s.stt_detail, "stt_no_ref_external");
+        try optOrNull(writer, s.stt_detail, "mother_account");
+        try optOrNull(writer, s.stt_detail, "mother_account_name");
+        try optOrNull(writer, s.stt_detail, "client_name");
+        try optOrNull(writer, s.stt_detail, "stt_origin_city_id");
+        try optOrNull(writer, s.stt_detail, "stt_destination_city_id");
+        try optOrNull(writer, s.stt_detail, "stt_destination_district_name");
+        try optOrNull(writer, s.stt_detail, "stt_product_type");
+        try optOrNull(writer, s.stt_detail, "stt_total_piece");
+        try optOrNull(writer, s.stt_detail, "stt_commodity_name");
+        try optOrNull(writer, s.stt_detail, "stt_volume_weight");
+        try optOrNull(writer, s.stt_detail, "stt_gross_weight");
+        try optOrNull(writer, s.stt_detail, "stt_chargeable_weight");
+        try optOrNull(writer, s.stt_detail, "publish_rate_per_kg");
+        try optOrNull(writer, s.stt_detail, "forward_rate_per_kg");
+        try optOrNull(writer, s.stt_detail, "surcharge_rate");
+        try optOrNull(writer, s.stt_detail, "stt_woodpacking_rate");
+        try optOrNull(writer, s.stt_detail, "total_amount_rate");
+        try optOrNull(writer, s.stt_detail, "total_vat");
+        try optOrNull(writer, s.stt_detail, "stt_insurance_rate");
+        try optOrNull(writer, s.stt_detail, "modified_at");
+        try optOrNull(writer, s.stt_detail, "platform_type");
+        try optOrNull(writer, s.stt_detail, "previous_cancel");
+        try optOrNull(writer, s.stt_detail, "percentage");
+        try optOrNull(writer, s.stt_detail, "forward_rate_origin_per_kg");
+        try optOrNull(writer, s.stt_detail, "cod_fee");
         try writer.writeAll("write_date=NOW() ");
-        _ = try writer.print("WHERE name='{s}';", .{s.stt_id});
+        _ = try writer.print("WHERE name='{s}';", .{s.stt_detail.stt_id});
     }
 
     fn formatAirflow(s: *const Self, writer: anytype) !void {
         try writer.writeAll("UPDATE stt_selector x ");
-        try writer.writeAll("SET proforma_stt_ts = y.latest_stt_ts ");
+        _ = try writer.print("SET {s} = y.latest_stt_ts ", .{s.stt_ts_col});
         try writer.writeAll("FROM (SELECT stt_id,latest_stt_ts FROM stt_selector ");
-        _ = try writer.print("where stt_id='{s}' FOR UPDATE) y ", .{s.stt_id});
+        _ = try writer.print("where stt_id='{s}' FOR UPDATE) y ", .{s.stt_detail.stt_id});
         try writer.writeAll("WHERE x.stt_id=y.stt_id;");
     }
 
-    fn optOrNull(writer: anytype, input: *const Self, comptime field_name: []const u8) !void {
+    fn optOrNull(writer: anytype, input: *const RecomputeSttDetail, comptime field_name: []const u8) !void {
         const field_value = @field(input, field_name);
         switch (@TypeOf(field_value)) {
             ?[]const u8 => {
