@@ -21,7 +21,7 @@ pub const SttSchedule = struct {
     schedule_biweekly_first_date: u64,
     schedule_weekly_day: u64,
     schedule_daily_minute: u64,
-    schedule_daily_hair: u64,
+    schedule_daily_hour: u64,
 };
 
 const LockProforma = struct {
@@ -44,12 +44,77 @@ const LockProforma = struct {
         const now_ts = time.DateTime.toUnix(now);
 
         if (std.mem.eql(u8, schedule_so, "monthly")) {
-            unreachable;
+            const day_monthly: u8 = @intCast(stt_schedule.schedule_monthly - 1);
+            const book_date = sel_proforma.stt_date;
+            const pod_date = sel_proforma.modified_at;
+
+            var schedule_no_pod = book_date.addMonths(1);
+            schedule_no_pod.days = day_monthly;
+            schedule_no_pod.hours = 0;
+            schedule_no_pod.minutes = 0;
+            schedule_no_pod.seconds = 1;
+
+            var schedule_stt = pod_date.addMonths(1);
+            schedule_stt.days = day_monthly;
+            schedule_stt.hours = 0;
+            schedule_stt.minutes = 0;
+            schedule_stt.seconds = 1;
+
+            const pod_date_ts = time.DateTime.toUnix(pod_date);
+            const schedule_no_pod_ts = time.DateTime.toUnix(schedule_no_pod);
+            if (pod_date_ts < schedule_no_pod_ts) {
+                schedule_stt = schedule_no_pod;
+            } else {
+                var schedule_pod_catchup = pod_date;
+                schedule_pod_catchup.days = day_monthly;
+                schedule_pod_catchup.hours = 0;
+                schedule_pod_catchup.minutes = 0;
+                schedule_pod_catchup.seconds = 1;
+                const schedule_pod_catchup_ts = time.DateTime.toUnix(schedule_pod_catchup);
+                if (pod_date_ts < schedule_pod_catchup_ts) {
+                    schedule_stt = schedule_pod_catchup;
+                }
+            }
+
+            schedule_date = schedule_stt;
         } else if (std.mem.eql(u8, schedule_so, "biweekly")) {
-            unreachable;
+            const first_date: u8 = @intCast(stt_schedule.schedule_biweekly_first_date - 1);
+            const second_date: u8 = @intCast(stt_schedule.schedule_biweekly_second_date - 1);
+            const pod_date = sel_proforma.modified_at;
+
+            var schedule_pod_first = pod_date;
+            schedule_pod_first.days = first_date;
+            schedule_pod_first.hours = 0;
+            schedule_pod_first.minutes = 0;
+            schedule_pod_first.seconds = 1;
+
+            var schedule_pod_second = pod_date;
+            schedule_pod_second.days = second_date;
+            schedule_pod_second.hours = 0;
+            schedule_pod_second.minutes = 0;
+            schedule_pod_second.seconds = 1;
+
+            var schedule_pod_next_first = pod_date.addMonths(1);
+            schedule_pod_next_first.days = first_date;
+            schedule_pod_next_first.hours = 0;
+            schedule_pod_next_first.minutes = 0;
+            schedule_pod_next_first.seconds = 1;
+
+            const pod_date_ts = time.DateTime.toUnix(pod_date);
+            const schedule_pod_first_ts = time.DateTime.toUnix(schedule_pod_first);
+            const schedule_pod_second_ts = time.DateTime.toUnix(schedule_pod_second);
+            const schedule_pod_next_first_ts = time.DateTime.toUnix(schedule_pod_next_first);
+
+            schedule_date = schedule_pod_first;
+            if (pod_date_ts < schedule_pod_first_ts) {
+                schedule_date = schedule_pod_first;
+            } else if (pod_date_ts < schedule_pod_second_ts) {
+                schedule_date = schedule_pod_second;
+            } else if (pod_date_ts < schedule_pod_next_first_ts) {
+                schedule_date = schedule_pod_next_first;
+            }
         } else if (std.mem.eql(u8, schedule_so, "weekly")) {
             var assumed_pod_date = sel_proforma.modified_at.addDays(1);
-            // while (assumed_pod_date.weekday != time.WeekDay.Mon) : (assumed_pod_date = assumed_pod_date.addDays(1)) {}
 
             var target_day: time.WeekDay = undefined;
             if (stt_schedule.schedule_weekly_day == 0) {
@@ -150,11 +215,6 @@ pub const Proforma = struct {
                 stt_schedule,
             ),
         };
-    }
-
-    fn calculateSchedule(stt_schedule: *const SttSchedule) !time.DateTime {
-        _ = stt_schedule;
-        return time.DateTime.now();
     }
 
     pub fn format(

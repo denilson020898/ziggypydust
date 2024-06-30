@@ -30,7 +30,7 @@ pub fn process_lock_costing_selector_list(args: struct {
 pub fn update_proforma_schedule_list(args: struct {
     list: py.PyList,
     partner_dict: py.PyDict,
-    schedule_daily_hair: u64,
+    schedule_daily_hour: u64,
     schedule_daily_minute: u64,
     schedule_weekly_day: u64,
     schedule_biweekly_first_date: u64,
@@ -45,7 +45,7 @@ pub fn update_proforma_schedule_list(args: struct {
     defer out.deinit();
 
     const stt_schedule = SttSchedule{
-        .schedule_daily_hair = args.schedule_daily_hair,
+        .schedule_daily_hour = args.schedule_daily_hour,
         .schedule_daily_minute = args.schedule_daily_minute,
         .schedule_weekly_day = args.schedule_weekly_day,
         .schedule_biweekly_first_date = args.schedule_biweekly_first_date,
