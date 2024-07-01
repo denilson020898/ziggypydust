@@ -136,9 +136,12 @@ const LockProforma = struct {
             while (assumed_pod_date.weekday() != target_day) {
                 assumed_pod_date = assumed_pod_date.addDays(1);
             }
+            assumed_pod_date = assumed_pod_date.addDays(1);
             assumed_pod_date.hours = 0;
             assumed_pod_date.minutes = 0;
             assumed_pod_date.seconds = 1;
+
+
             schedule_date = assumed_pod_date;
         } else if (std.mem.eql(u8, schedule_so, "daily")) {
             var assumed_pod_date = sel_proforma.modified_at.addDays(1);
