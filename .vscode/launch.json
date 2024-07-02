@@ -49,8 +49,8 @@
                 "-k",
                 // "test_notebook2",
                 // "test_recompute",
-                // "test_update_proforma_schedule_date",
-                "test_recompute_so",
+                "test_update_proforma_schedule_date",
+                // "test_recompute_so",
             ],
             "cwd": "${workspaceFolder}"
         },

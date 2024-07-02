@@ -54,28 +54,20 @@ const LockProforma = struct {
             schedule_no_pod.minutes = 0;
             schedule_no_pod.seconds = 1;
 
-            var schedule_stt = pod_date.addMonths(1);
-            schedule_stt.days = day_monthly;
-            schedule_stt.hours = 0;
-            schedule_stt.minutes = 0;
-            schedule_stt.seconds = 1;
+            var cur_month_schedule = pod_date;
+            cur_month_schedule.days = day_monthly;
+            cur_month_schedule.hours = 0;
+            cur_month_schedule.minutes = 0;
+            cur_month_schedule.seconds = 1;
+
+            var schedule_stt = cur_month_schedule;
 
             const pod_date_ts = time.DateTime.toUnix(pod_date);
-            const schedule_no_pod_ts = time.DateTime.toUnix(schedule_no_pod);
-            if (pod_date_ts < schedule_no_pod_ts) {
-                schedule_stt = schedule_no_pod;
-            } else {
-                var schedule_pod_catchup = pod_date;
-                schedule_pod_catchup.days = day_monthly;
-                schedule_pod_catchup.hours = 0;
-                schedule_pod_catchup.minutes = 0;
-                schedule_pod_catchup.seconds = 1;
-                const schedule_pod_catchup_ts = time.DateTime.toUnix(schedule_pod_catchup);
-                if (pod_date_ts < schedule_pod_catchup_ts) {
-                    schedule_stt = schedule_pod_catchup;
-                }
-            }
+            const cur_month_schedule_ts = time.DateTime.toUnix(cur_month_schedule);
 
+            if (pod_date_ts > cur_month_schedule_ts) {
+                schedule_stt = cur_month_schedule.addMonths(1);
+            }
             schedule_date = schedule_stt;
         } else if (std.mem.eql(u8, schedule_so, "biweekly")) {
             const first_date: u8 = @intCast(stt_schedule.schedule_biweekly_first_date - 1);
@@ -140,7 +132,6 @@ const LockProforma = struct {
             assumed_pod_date.hours = 0;
             assumed_pod_date.minutes = 0;
             assumed_pod_date.seconds = 1;
-
 
             schedule_date = assumed_pod_date;
         } else if (std.mem.eql(u8, schedule_so, "daily")) {
