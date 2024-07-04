@@ -115,7 +115,7 @@ def test_process_lock_costing_selector_exploration():
 
 
 def test_notebook2():
-    import test.notebook2
+    import test.test_lock_bill_schedule_date
 
 
 def test_recompute():

@@ -170,10 +170,9 @@ pub const Costing = struct {
         schedule_day: u64,
     ) !void {
         const stt_pod_date = try time.parseOdooDate(self.lock_costing.stt_pod_date);
-        var pod_schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
-
         const ts_date = try time.parseOdooDate(self.lock_costing.ts_date);
-        var ts_schedule_date = calculateScheduleDate(&ts_date, schedule_day);
+
+        var schedule_date = calculateScheduleDate(&stt_pod_date, schedule_day);
 
         var this_month = time.DateTime.now();
         this_month.days = @as(u8, @intCast(schedule_day - 1));
@@ -181,56 +180,25 @@ pub const Costing = struct {
         this_month.minutes = 0;
         this_month.seconds = 1;
 
-        // std.debug.print("\nself: {s}\n", .{self.lock_costing.costing_number});
-        // std.debug.print("pod_schedule_date : {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
-        //     pod_schedule_date,
-        //     pod_schedule_date,
-        //     pod_schedule_date,
-        //     pod_schedule_date,
-        // });
-        //
-        // std.debug.print("ts_schedule_date : {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
-        //     ts_schedule_date,
-        //     ts_schedule_date,
-        //     ts_schedule_date,
-        //     ts_schedule_date,
-        // });
-        //
-        // std.debug.print("this_month : {YYYY-MM-DD} {HH}:{mm}:{ss}\n", .{
-        //     this_month,
-        //     this_month,
-        //     this_month,
-        //     this_month,
-        // });
+        const schedule_date_unix = time.DateTime.toUnix(schedule_date);
+        const ts_date_unix = time.DateTime.toUnix(ts_date);
+        const this_month_unix = time.DateTime.toUnix(this_month);
 
-        const pod = time.DateTime.toUnix(pod_schedule_date);
-        const ts = time.DateTime.toUnix(ts_schedule_date);
-        const tm = time.DateTime.toUnix(this_month);
-
-        if (pod >= tm or ts >= tm) {
-            if (ts > pod) {
-                self.schedule_date = ts_schedule_date;
+        if (schedule_date_unix < ts_date_unix) {
+            if (ts_date_unix < this_month_unix) {
+                schedule_date = this_month;
             } else {
-                self.schedule_date = pod_schedule_date;
+                schedule_date = calculateScheduleDate(&ts_date, schedule_day);
             }
-            self.is_delay = false;
-        } else {
-            self.schedule_date = this_month.addMonths(1);
             self.is_delay = true;
         }
 
-        // if (s_ts < t_ts) {
-        //     schedule_date = this_month;
-        //     self.is_delay = true;
-        // }
+        if (schedule_date_unix < this_month_unix) {
+            schedule_date = this_month;
+            self.is_delay = true;
+        }
 
-        // std.debug.print("second: {YYYY-MM-DD} {HH}:{mm}:{ss}\n\n", .{
-        //     schedule_date,
-        //     schedule_date,
-        //     schedule_date,
-        //     schedule_date,
-        // });
-
+        self.schedule_date = schedule_date;
     }
 
     fn calculateScheduleDate(
