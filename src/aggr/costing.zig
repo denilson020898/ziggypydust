@@ -193,10 +193,25 @@ pub const Costing = struct {
             self.is_delay = true;
         }
 
-        if (schedule_date_unix < this_month_unix) {
+        // std.debug.print("before: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        // });
+
+        const new_schedule_date_unix = time.DateTime.toUnix(schedule_date);
+        if (new_schedule_date_unix < this_month_unix) {
             schedule_date = this_month;
             self.is_delay = true;
         }
+
+        // std.debug.print("after: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        //     schedule_date,
+        // });
 
         self.schedule_date = schedule_date;
     }
