@@ -74,6 +74,13 @@ const LockProforma = struct {
             const second_date: u8 = @intCast(stt_schedule.schedule_biweekly_second_date - 1);
             const pod_date = sel_proforma.modified_at;
 
+            // std.debug.print("pod_date: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+            //     pod_date,
+            //     pod_date,
+            //     pod_date,
+            //     pod_date,
+            // });
+
             var schedule_pod_first = pod_date;
             schedule_pod_first.days = first_date;
             schedule_pod_first.hours = 0;
@@ -86,7 +93,15 @@ const LockProforma = struct {
             schedule_pod_second.minutes = 0;
             schedule_pod_second.seconds = 1;
 
-            var schedule_pod_next_first = pod_date.addMonths(1);
+            var schedule_pod_next_first = schedule_pod_first.addMonths(1);
+
+            // std.debug.print("schedule_pod_next_first: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+            //     schedule_pod_next_first,
+            //     schedule_pod_next_first,
+            //     schedule_pod_next_first,
+            //     schedule_pod_next_first,
+            // });
+
             schedule_pod_next_first.days = first_date;
             schedule_pod_next_first.hours = 0;
             schedule_pod_next_first.minutes = 0;
@@ -98,6 +113,35 @@ const LockProforma = struct {
             const schedule_pod_next_first_ts = time.DateTime.toUnix(schedule_pod_next_first);
 
             schedule_date = schedule_pod_first;
+
+            // std.debug.print("schedule_date: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+            //     schedule_date,
+            //     schedule_date,
+            //     schedule_date,
+            //     schedule_date,
+            // });
+
+            // std.debug.print("schedule_pod_first: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+            //     schedule_pod_first,
+            //     schedule_pod_first,
+            //     schedule_pod_first,
+            //     schedule_pod_first,
+            // });
+
+            // std.debug.print("schedule_pod_second: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+            //     schedule_pod_second,
+            //     schedule_pod_second,
+            //     schedule_pod_second,
+            //     schedule_pod_second,
+            // });
+
+            // std.debug.print("schedule_pod_next_first: '{YYYY-MM-DD} {HH}:{mm}:{ss}'\n", .{
+            //     schedule_pod_next_first,
+            //     schedule_pod_next_first,
+            //     schedule_pod_next_first,
+            //     schedule_pod_next_first,
+            // });
+
             if (pod_date_ts < schedule_pod_first_ts) {
                 schedule_date = schedule_pod_first;
             } else if (pod_date_ts < schedule_pod_second_ts) {
