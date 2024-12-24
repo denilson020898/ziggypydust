@@ -321,6 +321,10 @@ pub const RecomputeSttDetail = struct {
     percentage: ?f32 = undefined,
     forward_rate_origin_per_kg: ?f32 = undefined,
     cod_fee: ?f32 = undefined,
+    stt_sender_name: ?[]const u8 = undefined,
+    stt_sender_address: ?[]const u8 = undefined,
+    stt_recipient_name: ?[]const u8 = undefined,
+    stt_recipient_address: ?[]const u8 = undefined,
 };
 
 pub const RecomputeStt = struct {
@@ -374,6 +378,12 @@ pub const RecomputeStt = struct {
         try optOrNull(writer, s.stt_detail, "percentage");
         try optOrNull(writer, s.stt_detail, "forward_rate_origin_per_kg");
         try optOrNull(writer, s.stt_detail, "cod_fee");
+
+        try optOrNull(writer, s.stt_detail, "stt_sender_name");
+        try optOrNull(writer, s.stt_detail, "stt_sender_address");
+        try optOrNull(writer, s.stt_detail, "stt_recipient_name");
+        try optOrNull(writer, s.stt_detail, "stt_recipient_address");
+
         try writer.writeAll("write_date=NOW() ");
         _ = try writer.print("WHERE name='{s}';", .{s.stt_detail.stt_id});
     }
